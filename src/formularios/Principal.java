@@ -7,10 +7,6 @@ package formularios;
 
 import Clases.MetodosSueltos;
 import Clases.VariablesGlobales;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -24,8 +20,9 @@ public class Principal extends javax.swing.JFrame {
     public Principal() {
         
         MetodosSueltos.disenoGUI();
-        
         initComponents();
+        
+        
         
     }
 
@@ -43,8 +40,6 @@ public class Principal extends javax.swing.JFrame {
         jMenuBar1 = new javax.swing.JMenuBar();
         menuAlu = new javax.swing.JMenu();
         mitAluCrear = new javax.swing.JMenuItem();
-        mitMod = new javax.swing.JMenuItem();
-        mitAluEli = new javax.swing.JMenuItem();
         jMenuItem9 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItem5 = new javax.swing.JMenuItem();
@@ -69,13 +64,12 @@ public class Principal extends javax.swing.JFrame {
         });
         menuAlu.add(mitAluCrear);
 
-        mitMod.setText("Modificar...");
-        menuAlu.add(mitMod);
-
-        mitAluEli.setText("Eliminar...");
-        menuAlu.add(mitAluEli);
-
         jMenuItem9.setText("Ver...");
+        jMenuItem9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem9ActionPerformed(evt);
+            }
+        });
         menuAlu.add(jMenuItem9);
 
         jMenuBar1.add(menuAlu);
@@ -124,7 +118,7 @@ public class Principal extends javax.swing.JFrame {
 
     private void mitAluCrearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mitAluCrearActionPerformed
         
-        Alumno ventana = new Alumno(this, true);
+        AlumnoForm ventana = new AlumnoForm(this, true);
         ventana.setVisible(true);
                 
     }//GEN-LAST:event_mitAluCrearActionPerformed
@@ -132,6 +126,13 @@ public class Principal extends javax.swing.JFrame {
     private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
         System.exit(0);
     }//GEN-LAST:event_jMenuItem7ActionPerformed
+
+    private void jMenuItem9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem9ActionPerformed
+        VerAlumnosForm ventana = new VerAlumnosForm(this, true);
+        ventana.setVisible(true);
+        
+        
+    }//GEN-LAST:event_jMenuItem9ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -181,7 +182,5 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem9;
     private javax.swing.JMenu menuAlu;
     private javax.swing.JMenuItem mitAluCrear;
-    private javax.swing.JMenuItem mitAluEli;
-    private javax.swing.JMenuItem mitMod;
     // End of variables declaration//GEN-END:variables
 }

@@ -51,7 +51,7 @@ public class ConexionDB {
                     break;
             }
             
-            conexion.setAutoCommit(false);
+            //conexion.setAutoCommit(false);
             
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(ConexionDB.class.getName()).log(Level.SEVERE, null, ex);
@@ -157,7 +157,7 @@ public class ConexionDB {
             resultSet = sentencia.executeQuery(consulta);
             
         } catch (SQLException ex) {
-            Logger.getLogger(ConexionDB.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getMessage());
         }
         
     }
