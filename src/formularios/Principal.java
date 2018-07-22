@@ -6,7 +6,6 @@
 package formularios;
 
 import Clases.MetodosSueltos;
-import Clases.VariablesGlobales;
 
 /**
  *
@@ -22,7 +21,7 @@ public class Principal extends javax.swing.JFrame {
         MetodosSueltos.disenoGUI();
         initComponents();
         
-        
+        this.setLocationRelativeTo(null);
         
     }
 
@@ -53,6 +52,7 @@ public class Principal extends javax.swing.JFrame {
         jMenuItem6.setText("jMenuItem6");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Gestor de clases");
 
         menuAlu.setText("Alumno");
 
