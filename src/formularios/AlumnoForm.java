@@ -347,7 +347,7 @@ public class AlumnoForm extends javax.swing.JDialog {
         }
 
         String[] origen = (String[]) (this.cmbOrigen.getSelectedItem());
-        int idOrigen = Integer.parseInt(origen[0])/*this.cmbOrigen.getSelectedItem()*/;
+        int idOrigen = Integer.parseInt(origen[0]);
 
         if (idOrigen == -1) {
             errores += "- Debes seleccionar un origen\n";

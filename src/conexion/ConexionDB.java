@@ -333,6 +333,29 @@ public class ConexionDB {
         }
 
     }
+    
+    /**
+     * Devuelve un valor int, recomendado para valores únicos
+     *
+     * @param columna Nombre de la columna de la base de datos
+     * @param tabla Nombre de la tabla de la base de datos
+     * @param condicion Condicion (sin where)
+     * @return Valor que devuelve la consulta
+     */
+    public double devolverValorDouble(String columna, String tabla, String condicion) {
+
+        try (Statement sentenciaAux = conexion.createStatement();
+                ResultSet aux = sentenciaAux.executeQuery("select " + columna + " from " + tabla + " where " + condicion);) {
+
+            aux.next();
+            return aux.getDouble(1);
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ConexionDB.class.getName()).log(Level.SEVERE, null, ex);
+            return -1;
+        }
+
+    }
 
     /**
      * Devuelve un unico valor String
@@ -458,7 +481,7 @@ public class ConexionDB {
         try (Statement sentenciaAux = conexion.createStatement();
                 ResultSet aux = sentenciaAux.executeQuery(consulta);) {
 
-            return aux.getInt(0);
+            return aux.getInt(1);
 
         } catch (SQLException ex) {
             Logger.getLogger(ConexionDB.class.getName()).log(Level.SEVERE, null, ex);
