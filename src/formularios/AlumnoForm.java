@@ -5,7 +5,6 @@
  */
 package formularios;
 
-import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import java.sql.ResultSet;
 import java.sql.SQLException;

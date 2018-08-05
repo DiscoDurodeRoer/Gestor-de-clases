@@ -5,13 +5,13 @@
  */
 package formularios;
 
-import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.JOptionPane;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
+import es.discoduroderoer.fechas.Horas;
 
 /**
  *
@@ -60,7 +60,7 @@ public class ClasesForm extends javax.swing.JDialog {
             String horaInicio = this.cmbHoraInicio.getSelectedItem().toString();
             String horaFin = this.cmbHoraFin.getSelectedItem().toString();
 
-            double horasRealizadas = MetodosSueltos.numeroHoras(horaInicio, horaFin);
+            double horasRealizadas = Horas.numeroHoras(horaInicio, horaFin);
 
             double precio = 0;
             if (this.rdbPresencial.isSelected()) {
