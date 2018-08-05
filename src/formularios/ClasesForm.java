@@ -5,14 +5,13 @@
  */
 package formularios;
 
-import Clases.MetodosSueltos;
-import Clases.VariablesGlobales;
+import clases.MetodosSueltos;
+import clases.VariablesGlobales;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
 
 /**
  *
@@ -30,6 +29,8 @@ public class ClasesForm extends javax.swing.JDialog {
         this.buttonGroup1.add(this.rdbDomicilio);
         this.buttonGroup1.add(this.rdbEspecificar);
 
+        this.setLocationRelativeTo(null);
+
         rellenarCombo();
 
         this.dtpFecha.setDate(new Date());
@@ -41,12 +42,48 @@ public class ClasesForm extends javax.swing.JDialog {
         String sql = "Select id, nombre || ' ' || apellidos as nombreC "
                 + "from alumnos "
                 + "where activado = 1";
-        System.out.println(sql);
         VariablesGlobales.conexion.rellenaComboBox2Columnas(cmbAlumno,
                 sql,
                 "--Selecciona un alumno",
                 "id",
                 "nombreC");
+
+    }
+
+    private void calcularPrecioFinal() {
+
+        double precioFinal = 0;
+
+        if (this.cmbAlumno.getSelectedIndex() != 0
+                && this.cmbHoraInicio.getSelectedIndex() < this.cmbHoraFin.getSelectedIndex()) {
+
+            String horaInicio = this.cmbHoraInicio.getSelectedItem().toString();
+            String horaFin = this.cmbHoraFin.getSelectedItem().toString();
+
+            double horasRealizadas = MetodosSueltos.numeroHoras(horaInicio, horaFin);
+
+            double precio = 0;
+            if (this.rdbPresencial.isSelected()) {
+                precio = Double.parseDouble(this.txtPrecioPresencial.getText());
+            } else if (this.rdbDomicilio.isSelected()) {
+                precio = Double.parseDouble(this.txtPrecioDomicilio.getText());
+            } else {
+                String precioEspecial = this.txtEspecificarPrecio.getText();
+
+                if (precioEspecial.equals("")
+                        || !ExpresionesRegulares.validaNumeroRealPositivo_Exp(precioEspecial, 2)) {
+                    precio = 0;
+                } else {
+                    precio = Double.parseDouble(this.txtEspecificarPrecio.getText());
+                }
+
+            }
+
+            precioFinal = precio * horasRealizadas;
+
+        }
+
+        this.txtPrecioFinal.setText(precioFinal + "");
 
     }
 
@@ -78,12 +115,24 @@ public class ClasesForm extends javax.swing.JDialog {
         rdbDomicilio = new javax.swing.JRadioButton();
         txtPrecioFinal = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
+        txtPrecioDomicilio = new javax.swing.JTextField();
+        txtPrecioPresencial = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Insertar clase");
+        setResizable(false);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setText("Alumno");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 50, -1, -1));
 
         rdbEspecificar.setText("Especificar");
+        rdbEspecificar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rdbEspecificarActionPerformed(evt);
+            }
+        });
+        getContentPane().add(rdbEspecificar, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 270, -1, -1));
 
         btnGuardar.setText("Guardar");
         btnGuardar.addActionListener(new java.awt.event.ActionListener() {
@@ -91,20 +140,53 @@ public class ClasesForm extends javax.swing.JDialog {
                 btnGuardarActionPerformed(evt);
             }
         });
+        getContentPane().add(btnGuardar, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 330, -1, -1));
 
         cmbHoraInicio.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00" }));
+        cmbHoraInicio.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cmbHoraInicioItemStateChanged(evt);
+            }
+        });
+        getContentPane().add(cmbHoraInicio, new org.netbeans.lib.awtextra.AbsoluteConstraints(147, 140, 101, -1));
 
         rdbPresencial.setSelected(true);
         rdbPresencial.setText("Presencial");
+        rdbPresencial.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rdbPresencialActionPerformed(evt);
+            }
+        });
+        getContentPane().add(rdbPresencial, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 190, -1, -1));
 
         cmbHoraFin.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00" }));
         cmbHoraFin.setSelectedIndex(2);
+        cmbHoraFin.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cmbHoraFinItemStateChanged(evt);
+            }
+        });
+        getContentPane().add(cmbHoraFin, new org.netbeans.lib.awtextra.AbsoluteConstraints(322, 140, 101, -1));
 
         txtEspecificarPrecio.setEditable(false);
+        txtEspecificarPrecio.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtEspecificarPrecioKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtEspecificarPrecioKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtEspecificarPrecioKeyTyped(evt);
+            }
+        });
+        getContentPane().add(txtEspecificarPrecio, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 270, 50, 20));
 
         jLabel5.setText("Hora fin");
+        getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(266, 143, -1, -1));
 
         btnGuardarNuevo.setText("Guardar y nuevo");
+        getContentPane().add(btnGuardarNuevo, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 330, -1, -1));
 
         btnSalir.setText("Salir");
         btnSalir.addActionListener(new java.awt.event.ActionListener() {
@@ -112,120 +194,59 @@ public class ClasesForm extends javax.swing.JDialog {
                 btnSalirActionPerformed(evt);
             }
         });
+        getContentPane().add(btnSalir, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 330, 83, -1));
 
         jLabel2.setText("Fecha");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 100, -1, -1));
 
         jLabel3.setText("Hora inicio");
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 143, -1, -1));
+        getContentPane().add(dtpFecha, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 100, 112, -1));
 
         jLabel4.setText("Precio");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 196, -1, -1));
 
-        cmbAlumno.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cmbAlumno.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cmbAlumnoItemStateChanged(evt);
+            }
+        });
         cmbAlumno.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cmbAlumnoActionPerformed(evt);
             }
         });
+        getContentPane().add(cmbAlumno, new org.netbeans.lib.awtextra.AbsoluteConstraints(147, 47, 254, -1));
 
         rdbDomicilio.setText("Domicilio");
+        rdbDomicilio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rdbDomicilioActionPerformed(evt);
+            }
+        });
+        getContentPane().add(rdbDomicilio, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 230, -1, -1));
 
         txtPrecioFinal.setEditable(false);
+        txtPrecioFinal.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtPrecioFinalActionPerformed(evt);
+            }
+        });
+        getContentPane().add(txtPrecioFinal, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 230, 115, 20));
 
         jLabel6.setText("Precio final");
+        getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 190, 110, 20));
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(80, 80, 80)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(cmbHoraInicio, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(jLabel5)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(cmbHoraFin, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(10, 10, 10)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(rdbEspecificar)
-                                            .addComponent(rdbPresencial)))))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel1)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(btnGuardar)
-                                    .addGap(18, 18, 18)
-                                    .addComponent(btnGuardarNuevo)
-                                    .addGap(18, 18, 18)
-                                    .addComponent(btnSalir, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(txtEspecificarPrecio, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                            .addComponent(jLabel4)
-                                            .addGap(140, 140, 140)
-                                            .addComponent(rdbDomicilio)))
-                                    .addGap(31, 31, 31)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel6)
-                                        .addComponent(txtPrecioFinal, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addGap(67, 67, 67)
-                                    .addComponent(cmbAlumno, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(92, 92, 92)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(54, 54, 54)
-                                .addComponent(dtpFecha, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel2))))
-                .addContainerGap(34, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(47, 47, 47)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(cmbAlumno, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel2)
-                    .addComponent(dtpFecha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(cmbHoraInicio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel5)
-                    .addComponent(cmbHoraFin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(32, 32, 32)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel4)
-                            .addComponent(rdbPresencial)
-                            .addComponent(rdbDomicilio))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(rdbEspecificar)
-                            .addComponent(txtEspecificarPrecio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtPrecioFinal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnGuardar)
-                    .addComponent(btnGuardarNuevo)
-                    .addComponent(btnSalir))
-                .addGap(63, 63, 63))
-        );
+        txtPrecioDomicilio.setEditable(false);
+        txtPrecioDomicilio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtPrecioDomicilioActionPerformed(evt);
+            }
+        });
+        getContentPane().add(txtPrecioDomicilio, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 230, 50, 20));
+
+        txtPrecioPresencial.setEditable(false);
+        getContentPane().add(txtPrecioPresencial, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 190, 50, 20));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -240,34 +261,21 @@ public class ClasesForm extends javax.swing.JDialog {
 
         int codigoAlumno = 0;
         String horaInicio = null, horaFin = null;
-        double horasRealizadas = 0;
         double precioFinal = 0;
-        double precio = 0;
         String formatoFechaClase = null;
-        String columnaPrecio = "";
-        
-        
+
+        precioFinal = Double.parseDouble(this.txtPrecioFinal.getText());
+
         if (this.cmbAlumno.getSelectedIndex() == 0) {
             errores += "- Debes seleccionar un alumno \n";
         } else {
             String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
             codigoAlumno = Integer.parseInt(filaCombobox[0]);
-
-            if(this.rdbPresencial.isSelected()){
-                columnaPrecio = "precio_base";
-            }else if(this.rdbDomicilio.isSelected()){
-                columnaPrecio = "precio_domicilio";
-            }
-            
-            precio = VariablesGlobales.conexion.devolverValorDouble(columnaPrecio,
-                    "alumnos",
-                    "id = " + codigoAlumno);
-
         }
 
         if (!this.dtpFecha.isValid()) {
             errores += "- La fecha no es válida \n";
-        }else{
+        } else {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             formatoFechaClase = sdf.format(this.dtpFecha.getDate());
         }
@@ -277,35 +285,32 @@ public class ClasesForm extends javax.swing.JDialog {
         } else {
             horaInicio = this.cmbHoraInicio.getSelectedItem().toString();
             horaFin = this.cmbHoraFin.getSelectedItem().toString();
+        }
 
-            horasRealizadas = MetodosSueltos.numeroHoras(horaInicio, horaFin);
-
+        if (precioFinal == 0) {
+            errores += "- El precio final no puede ser 0. \n";
         }
 
         if (errores.equals("")) {
-            
+
             try {
-                precioFinal = precio * horasRealizadas;
-                
-                System.out.println(horasRealizadas);
-                System.out.println(precioFinal);
-                
+
                 String sql = "insert into clases "
                         + "(fecha, hora_inicio, hora_fin, "
                         + "id_alumno, precio) values "
-                        + "('"+formatoFechaClase+"', '"+horaInicio+"',"
-                        + "'"+horaFin+"', "+codigoAlumno+", "+precioFinal+")";
-                
+                        + "('" + formatoFechaClase + "', '" + horaInicio + "',"
+                        + "'" + horaFin + "', " + codigoAlumno + ", " + precioFinal + ")";
+
                 VariablesGlobales.conexion.ejecutarInstruccion(sql);
-                JOptionPane.showMessageDialog(this, 
-                        "Se ha insertado correctamente", 
-                        "Éxito", 
+                JOptionPane.showMessageDialog(this,
+                        "Se ha insertado correctamente",
+                        "Éxito",
                         JOptionPane.INFORMATION_MESSAGE);
-                
+
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, 
-                        "No se ha insertado correctamente", 
-                        "Error", 
+                JOptionPane.showMessageDialog(this,
+                        "No se ha insertado correctamente:" + ex.getMessage(),
+                        "Error",
                         JOptionPane.ERROR_MESSAGE);
             }
 
@@ -323,48 +328,67 @@ public class ClasesForm extends javax.swing.JDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_cmbAlumnoActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ClasesForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ClasesForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ClasesForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ClasesForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
+    private void txtPrecioFinalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPrecioFinalActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtPrecioFinalActionPerformed
 
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                ClasesForm dialog = new ClasesForm(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
-        });
-    }
+    private void rdbDomicilioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbDomicilioActionPerformed
+        this.calcularPrecioFinal();
+    }//GEN-LAST:event_rdbDomicilioActionPerformed
+
+    private void cmbAlumnoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbAlumnoItemStateChanged
+
+        String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
+        int codigoAlumno = Integer.parseInt(filaCombobox[0]);
+
+        double precioPresencial = VariablesGlobales.conexion.devolverValorDouble("precio_base",
+                "alumnos",
+                "id = " + codigoAlumno);
+
+        double precioDomicilio = VariablesGlobales.conexion.devolverValorDouble("precio_domicilio",
+                "alumnos",
+                "id = " + codigoAlumno);
+
+        this.txtPrecioPresencial.setText(precioPresencial + "");
+        this.txtPrecioDomicilio.setText(precioDomicilio + "");
+
+        this.calcularPrecioFinal();
+
+    }//GEN-LAST:event_cmbAlumnoItemStateChanged
+
+    private void rdbEspecificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbEspecificarActionPerformed
+        this.txtEspecificarPrecio.setEditable(true);
+        this.calcularPrecioFinal();
+    }//GEN-LAST:event_rdbEspecificarActionPerformed
+
+    private void cmbHoraInicioItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbHoraInicioItemStateChanged
+        this.calcularPrecioFinal();
+    }//GEN-LAST:event_cmbHoraInicioItemStateChanged
+
+    private void cmbHoraFinItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbHoraFinItemStateChanged
+        this.calcularPrecioFinal();
+    }//GEN-LAST:event_cmbHoraFinItemStateChanged
+
+    private void rdbPresencialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbPresencialActionPerformed
+        this.txtEspecificarPrecio.setEditable(false);
+        this.calcularPrecioFinal();
+    }//GEN-LAST:event_rdbPresencialActionPerformed
+
+    private void txtEspecificarPrecioKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtEspecificarPrecioKeyReleased
+        this.calcularPrecioFinal();
+    }//GEN-LAST:event_txtEspecificarPrecioKeyReleased
+
+    private void txtPrecioDomicilioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPrecioDomicilioActionPerformed
+        this.calcularPrecioFinal();
+    }//GEN-LAST:event_txtPrecioDomicilioActionPerformed
+
+    private void txtEspecificarPrecioKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtEspecificarPrecioKeyPressed
+
+    }//GEN-LAST:event_txtEspecificarPrecioKeyPressed
+
+    private void txtEspecificarPrecioKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtEspecificarPrecioKeyTyped
+
+    }//GEN-LAST:event_txtEspecificarPrecioKeyTyped
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnGuardar;
@@ -385,6 +409,8 @@ public class ClasesForm extends javax.swing.JDialog {
     private javax.swing.JRadioButton rdbEspecificar;
     private javax.swing.JRadioButton rdbPresencial;
     private javax.swing.JTextField txtEspecificarPrecio;
+    private javax.swing.JTextField txtPrecioDomicilio;
     private javax.swing.JTextField txtPrecioFinal;
+    private javax.swing.JTextField txtPrecioPresencial;
     // End of variables declaration//GEN-END:variables
 }

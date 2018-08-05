@@ -5,14 +5,13 @@
  */
 package formularios;
 
-import Clases.MetodosSueltos;
-import Clases.VariablesGlobales;
+import clases.MetodosSueltos;
+import clases.VariablesGlobales;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
+import es.discoduroderoer.swing.MiSwing;
 
 /**
  *
@@ -79,7 +78,7 @@ public class AlumnoForm extends javax.swing.JDialog {
                 telefonoOriginal = this.txtTelefono.getText();
                 emailOriginal = this.txtEmail.getText();
 
-                MetodosSueltos.asignarItemCmb2Columnas(cmbOrigen, rs.getInt("Origen"));
+                MiSwing.asignarItemCmb2Columnas(cmbOrigen, rs.getInt("Origen"));
                 if (rs.getInt("activado") == 1) {
                     this.rdbActSi.setSelected(true);
                 } else {
@@ -297,7 +296,7 @@ public class AlumnoForm extends javax.swing.JDialog {
         }
 
         String email = this.txtEmail.getText();
-        if (!MetodosSueltos.validar_Mail_Exp(email)) {
+        if (!ExpresionesRegulares.validar_Mail_Exp(email)) {
             errores += "- El correo no es valido\n";
         }
 
@@ -332,7 +331,7 @@ public class AlumnoForm extends javax.swing.JDialog {
         }
 
         double precioBase = 0;
-        if (!MetodosSueltos.validaNumeroRealPositivo_Exp(this.txtPrecioBase.getText(), 2)) {
+        if (!ExpresionesRegulares.validaNumeroRealPositivo_Exp(this.txtPrecioBase.getText(), 2)) {
             errores += "- El precio base no es válido\n";
         } else {
             precioBase = Double.parseDouble(this.txtPrecioBase.getText());
@@ -340,7 +339,7 @@ public class AlumnoForm extends javax.swing.JDialog {
 
         double precioDomicilio = 0;
 
-        if (!MetodosSueltos.validaNumeroRealPositivo_Exp(this.txtPrecioDomicilio.getText(), 2)) {
+        if (!ExpresionesRegulares.validaNumeroRealPositivo_Exp(this.txtPrecioDomicilio.getText(), 2)) {
             errores += "- El precio base no es válido\n";
         } else {
             precioDomicilio = Double.parseDouble(this.txtPrecioDomicilio.getText());

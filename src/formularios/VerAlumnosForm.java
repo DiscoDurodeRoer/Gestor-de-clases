@@ -5,13 +5,14 @@
  */
 package formularios;
 
-import Clases.MetodosSueltos;
-import Clases.VariablesGlobales;
+import clases.MetodosSueltos;
+import clases.VariablesGlobales;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import es.discoduroderoer.swing.MiSwing;
 
 /**
  *
@@ -56,7 +57,7 @@ public class VerAlumnosForm extends javax.swing.JDialog {
         try {
             VariablesGlobales.conexion.ejecutarConsulta(sql);
             VariablesGlobales.conexion.rellenaJTableBD(modeloTabla);
-            MetodosSueltos.ocultarColumnaJTable(tblAlumnos, 0);
+            MiSwing.ocultarColumnaJTable(tblAlumnos, 0);
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }

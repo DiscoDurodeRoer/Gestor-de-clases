@@ -5,12 +5,8 @@
  */
 package formularios;
 
-import Clases.MetodosSueltos;
+import es.discoduroderoer.swing.LAF;
 
-/**
- *
- * @author Fernando
- */
 public class Principal extends javax.swing.JFrame {
 
     /**
@@ -18,7 +14,7 @@ public class Principal extends javax.swing.JFrame {
      */
     public Principal() {
         
-        MetodosSueltos.disenoGUI();
+        LAF.disenoGUI();
         initComponents();
         
         this.setLocationRelativeTo(null);
