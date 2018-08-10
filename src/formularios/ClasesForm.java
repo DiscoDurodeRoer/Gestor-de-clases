@@ -5,6 +5,7 @@
  */
 package formularios;
 
+import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -29,26 +30,18 @@ public class ClasesForm extends javax.swing.JDialog {
         this.buttonGroup1.add(this.rdbDomicilio);
         this.buttonGroup1.add(this.rdbEspecificar);
 
+        this.buttonGroup2.add(this.rdbPagado);
+        this.buttonGroup2.add(this.rdbNoPagado);
+
         this.setLocationRelativeTo(null);
 
-        rellenarCombo();
+        MetodosSueltos.rellenarComboAlumno(cmbAlumno);
 
         this.dtpFecha.setDate(new Date());
 
     }
 
-    private void rellenarCombo() {
-
-        String sql = "Select id, nombre || ' ' || apellidos as nombreC "
-                + "from alumnos "
-                + "where activado = 1";
-        VariablesGlobales.conexion.rellenaComboBox2Columnas(cmbAlumno,
-                sql,
-                "--Selecciona un alumno",
-                "id",
-                "nombreC");
-
-    }
+    
 
     private void calcularPrecioFinal() {
 
@@ -97,6 +90,7 @@ public class ClasesForm extends javax.swing.JDialog {
     private void initComponents() {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
+        buttonGroup2 = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
         rdbEspecificar = new javax.swing.JRadioButton();
         btnGuardar = new javax.swing.JButton();
@@ -117,6 +111,8 @@ public class ClasesForm extends javax.swing.JDialog {
         jLabel6 = new javax.swing.JLabel();
         txtPrecioDomicilio = new javax.swing.JTextField();
         txtPrecioPresencial = new javax.swing.JTextField();
+        rdbNoPagado = new javax.swing.JRadioButton();
+        rdbPagado = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Insertar clase");
@@ -140,7 +136,7 @@ public class ClasesForm extends javax.swing.JDialog {
                 btnGuardarActionPerformed(evt);
             }
         });
-        getContentPane().add(btnGuardar, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 330, -1, -1));
+        getContentPane().add(btnGuardar, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 360, -1, -1));
 
         cmbHoraInicio.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00" }));
         cmbHoraInicio.addItemListener(new java.awt.event.ItemListener() {
@@ -186,7 +182,12 @@ public class ClasesForm extends javax.swing.JDialog {
         getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(266, 143, -1, -1));
 
         btnGuardarNuevo.setText("Guardar y nuevo");
-        getContentPane().add(btnGuardarNuevo, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 330, -1, -1));
+        btnGuardarNuevo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGuardarNuevoActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnGuardarNuevo, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 360, -1, -1));
 
         btnSalir.setText("Salir");
         btnSalir.addActionListener(new java.awt.event.ActionListener() {
@@ -194,7 +195,7 @@ public class ClasesForm extends javax.swing.JDialog {
                 btnSalirActionPerformed(evt);
             }
         });
-        getContentPane().add(btnSalir, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 330, 83, -1));
+        getContentPane().add(btnSalir, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 360, 83, -1));
 
         jLabel2.setText("Fecha");
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 100, -1, -1));
@@ -247,6 +248,18 @@ public class ClasesForm extends javax.swing.JDialog {
 
         txtPrecioPresencial.setEditable(false);
         getContentPane().add(txtPrecioPresencial, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 190, 50, 20));
+
+        rdbNoPagado.setSelected(true);
+        rdbNoPagado.setText("No pagado");
+        getContentPane().add(rdbNoPagado, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 310, -1, -1));
+
+        rdbPagado.setText("Pagado");
+        rdbPagado.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rdbPagadoActionPerformed(evt);
+            }
+        });
+        getContentPane().add(rdbPagado, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 310, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -302,10 +315,28 @@ public class ClasesForm extends javax.swing.JDialog {
                         + "'" + horaFin + "', " + codigoAlumno + ", " + precioFinal + ")";
 
                 VariablesGlobales.conexion.ejecutarInstruccion(sql);
+
+                int idClase = VariablesGlobales.conexion.ultimoID("id_clase", "clases");
+
+                double pagado = 0;
+                if (this.rdbPagado.isSelected()) {
+                    pagado = precioFinal;
+                }else{
+                    formatoFechaClase = null;
+                }
+
+                sql = "insert into pagos "
+                        + "(fecha, id_clase, pagado) values "
+                        + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";
+
+                VariablesGlobales.conexion.ejecutarInstruccion(sql);
+
                 JOptionPane.showMessageDialog(this,
                         "Se ha insertado correctamente",
                         "Éxito",
                         JOptionPane.INFORMATION_MESSAGE);
+
+                this.dispose();
 
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this,
@@ -390,11 +421,20 @@ public class ClasesForm extends javax.swing.JDialog {
 
     }//GEN-LAST:event_txtEspecificarPrecioKeyTyped
 
+    private void rdbPagadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbPagadoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_rdbPagadoActionPerformed
+
+    private void btnGuardarNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarNuevoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnGuardarNuevoActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnGuardar;
     private javax.swing.JButton btnGuardarNuevo;
     private javax.swing.JButton btnSalir;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JComboBox<String> cmbAlumno;
     private javax.swing.JComboBox<String> cmbHoraFin;
     private javax.swing.JComboBox<String> cmbHoraInicio;
@@ -407,6 +447,8 @@ public class ClasesForm extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JRadioButton rdbDomicilio;
     private javax.swing.JRadioButton rdbEspecificar;
+    private javax.swing.JRadioButton rdbNoPagado;
+    private javax.swing.JRadioButton rdbPagado;
     private javax.swing.JRadioButton rdbPresencial;
     private javax.swing.JTextField txtEspecificarPrecio;
     private javax.swing.JTextField txtPrecioDomicilio;

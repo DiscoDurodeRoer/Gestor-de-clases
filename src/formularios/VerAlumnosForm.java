@@ -7,8 +7,6 @@ package formularios;
 
 import clases.VariablesGlobales;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import es.discoduroderoer.swing.MiSwing;
