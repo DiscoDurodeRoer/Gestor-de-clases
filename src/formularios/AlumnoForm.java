@@ -426,11 +426,9 @@ public class AlumnoForm extends javax.swing.JDialog {
     }//GEN-LAST:event_btnGuardarActionPerformed
 
     private void btnGuadarEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuadarEnviarActionPerformed
-
-        insertarUsuario();
-
-        limpiar();
-
+        if (insertarUsuario()) {
+            MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+        }
     }//GEN-LAST:event_btnGuadarEnviarActionPerformed
 
     private void btnSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalirActionPerformed

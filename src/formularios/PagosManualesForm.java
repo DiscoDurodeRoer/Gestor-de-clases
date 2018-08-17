@@ -8,6 +8,7 @@ package formularios;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
+import es.discoduroderoer.swing.MiSwing;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -29,14 +30,17 @@ public class PagosManualesForm extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
 
+        this.buttonGroup1.add(this.rdbDomicilio);
+        this.buttonGroup1.add(this.rdbEspecificar);
+        this.buttonGroup1.add(this.rdbPresencial);
+        
         MetodosSueltos.rellenarComboAlumno(cmbAlumno);
     }
 
-    public void actualizarPagos() {
+    public boolean actualizarPagos() {
 
         String errores = "";
 
-        Date fechaPago = this.dtpFechaPago.getDate();
         String precioText = this.txtPago.getText();
         double pago = 0;
         int codigoAlumno = -1;
@@ -55,31 +59,37 @@ public class PagosManualesForm extends javax.swing.JDialog {
             pago = Double.parseDouble(precioText);
         }
 
+        /*System.out.println(this.dtpFechaPago.isValid());
+        System.out.println(this.dtpFechaPago.getDate());
         if (!this.dtpFechaPago.isValid()) {
             errores += "- La fecha no es válida \n";
         } else {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
-        }
+        }*/
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
 
         if (errores.equals("")) {
 
             String sql = "select p.id_pago,"
-                    + "c.precio as precio_clase, p.pagado"
-                    + "from clases c, pagos p "
+                    + "c.precio as precio_clase, p.pagado "
+                    + "from clases c, pagos p, alumnos a "
                     + "where c.id_clase = p.id_clase and "
-                    + "c.precio>p.pagado "
+                    + "a.id = c.id_Alumno "
+                    + "and a.id = " + codigoAlumno
+                    + " and c.precio>p.pagado "
                     + "order by c.fecha";
-
+            System.out.println(sql);
             try {
                 VariablesGlobales.conexion.ejecutarConsulta(sql);
 
                 ResultSet rs = VariablesGlobales.conexion.getResultSet();
 
-                double precioClase, pagado, diferencia;
+                double precioClase, pagado, diferencia = 0, pagoClase;
                 int idPago;
 
-                while (rs.next() && pago < 0) {
+                while (rs.next() && pago > 0) {
 
                     idPago = rs.getInt("id_pago");
 
@@ -88,35 +98,79 @@ public class PagosManualesForm extends javax.swing.JDialog {
 
                     diferencia = precioClase - pagado;
 
-                    if ((pago - diferencia) > 0) {
+                    if ((pago - diferencia) >= 0) {
+                        pagoClase = precioClase;
+                    } else {
+                        pagoClase = pago;
+                    }
 
-                        sql = "update pagos "
-                                + "set fecha = '" + formatoFechaClase + "', "
-                                + "pagado = " + precioClase + " "
-                                + "where id_pago=" + idPago;
+                    sql = "update pagos "
+                            + "set fecha = '" + formatoFechaClase + "', "
+                            + "pagado = " + pagoClase + " "
+                            + "where id_pago=" + idPago;
 
-                        System.out.println(sql);
+                    System.out.println(sql);
+
+                    VariablesGlobales.conexion.ejecutarInstruccion(sql);
+                    
+                    pago = pago - diferencia;
+                }
+
+                if (pago > 0) {
+
+                    double precioPorClase = 0;
+
+                    if (this.rdbPresencial.isSelected()) {
+                        precioPorClase = Double.parseDouble(this.txtPrecioPresencial.getText());
+                    } else if (this.rdbDomicilio.isSelected()) {
+                        precioPorClase = Double.parseDouble(this.txtPrecioDomicilio.getText());
+                    } else {
+                        precioPorClase = Double.parseDouble(this.txtEspecificarPrecio.getText());
+                    }
+
+                    while (pago > 0) {
+
+                        if ((pago - precioPorClase) >= 0) {
+                            diferencia = precioPorClase;
+                        } else {
+                            diferencia = pago;
+                        }
+
+                        sql = "insert into clases "
+                                + "(id_alumno, precio) values "
+                                + "(" + codigoAlumno + ", " + precioPorClase + ")";
 
                         VariablesGlobales.conexion.ejecutarInstruccion(sql);
 
+                        int idClase = VariablesGlobales.conexion.ultimoID("id_clase", "clases");
+
+                        sql = "insert into pagos "
+                                + "(fecha, id_clase, pagado) values "
+                                + "('" + formatoFechaClase + "', " + idClase + ", " + diferencia + ")";
+
+                        VariablesGlobales.conexion.ejecutarInstruccion(sql);
+
+                        pago = pago - diferencia;
+
                     }
 
-                    pago = pago - diferencia;
-
                 }
+
+                return true;
 
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this,
                         ex.getMessage(),
                         "Error",
                         JOptionPane.ERROR_MESSAGE);
+                return false;
             }
-
         } else {
             JOptionPane.showMessageDialog(this,
                     errores,
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
+            return false;
         }
 
     }
@@ -125,6 +179,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         btnGuardar = new javax.swing.JButton();
         btnguardarNuevo = new javax.swing.JButton();
         dtpFechaPago = new com.toedter.calendar.JDateChooser();
@@ -134,8 +189,16 @@ public class PagosManualesForm extends javax.swing.JDialog {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         btnSalir = new javax.swing.JButton();
+        rdbEspecificar = new javax.swing.JRadioButton();
+        rdbPresencial = new javax.swing.JRadioButton();
+        txtEspecificarPrecio = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        rdbDomicilio = new javax.swing.JRadioButton();
+        txtPrecioDomicilio = new javax.swing.JTextField();
+        txtPrecioPresencial = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         btnGuardar.setText("Guardar");
         btnGuardar.addActionListener(new java.awt.event.ActionListener() {
@@ -143,6 +206,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
                 btnGuardarActionPerformed(evt);
             }
         });
+        getContentPane().add(btnGuardar, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 330, -1, -1));
 
         btnguardarNuevo.setText("Guardar y nuevo");
         btnguardarNuevo.addActionListener(new java.awt.event.ActionListener() {
@@ -150,18 +214,31 @@ public class PagosManualesForm extends javax.swing.JDialog {
                 btnguardarNuevoActionPerformed(evt);
             }
         });
+        getContentPane().add(btnguardarNuevo, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 330, -1, -1));
+        getContentPane().add(dtpFechaPago, new org.netbeans.lib.awtextra.AbsoluteConstraints(89, 84, 174, -1));
+
+        cmbAlumno.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cmbAlumnoItemStateChanged(evt);
+            }
+        });
+        getContentPane().add(cmbAlumno, new org.netbeans.lib.awtextra.AbsoluteConstraints(89, 27, 174, -1));
 
         txtPago.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtPagoActionPerformed(evt);
             }
         });
+        getContentPane().add(txtPago, new org.netbeans.lib.awtextra.AbsoluteConstraints(89, 139, 174, -1));
 
         jLabel1.setText("Alumno");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(28, 30, -1, -1));
 
         jLabel2.setText("Fecha");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(28, 84, -1, -1));
 
         jLabel3.setText("Pago");
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(28, 142, -1, -1));
 
         btnSalir.setText("Salir");
         btnSalir.addActionListener(new java.awt.event.ActionListener() {
@@ -169,78 +246,78 @@ public class PagosManualesForm extends javax.swing.JDialog {
                 btnSalirActionPerformed(evt);
             }
         });
+        getContentPane().add(btnSalir, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 330, -1, -1));
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addGap(26, 26, 26)
-                                .addComponent(cmbAlumno, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(jLabel3))
-                                .addGap(32, 32, 32)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(txtPago)
-                                    .addComponent(dtpFechaPago, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                        .addGap(88, 88, 88))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnGuardar)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnguardarNuevo)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnSalir)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(27, 27, 27)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cmbAlumno, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addGap(37, 37, 37)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(dtpFechaPago, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addGap(35, 35, 35)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtPago, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3))
-                .addGap(36, 36, 36)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnGuardar)
-                    .addComponent(btnguardarNuevo)
-                    .addComponent(btnSalir))
-                .addContainerGap(24, Short.MAX_VALUE))
-        );
+        rdbEspecificar.setText("Especificar");
+        rdbEspecificar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rdbEspecificarActionPerformed(evt);
+            }
+        });
+        getContentPane().add(rdbEspecificar, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 270, -1, -1));
+
+        rdbPresencial.setSelected(true);
+        rdbPresencial.setText("Presencial");
+        rdbPresencial.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rdbPresencialActionPerformed(evt);
+            }
+        });
+        getContentPane().add(rdbPresencial, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 190, -1, -1));
+
+        txtEspecificarPrecio.setEditable(false);
+        txtEspecificarPrecio.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtEspecificarPrecioKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtEspecificarPrecioKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtEspecificarPrecioKeyTyped(evt);
+            }
+        });
+        getContentPane().add(txtEspecificarPrecio, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 270, 50, 20));
+
+        jLabel4.setText("Precio por clase");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 190, -1, -1));
+
+        rdbDomicilio.setText("Domicilio");
+        rdbDomicilio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rdbDomicilioActionPerformed(evt);
+            }
+        });
+        getContentPane().add(rdbDomicilio, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 230, -1, -1));
+
+        txtPrecioDomicilio.setEditable(false);
+        txtPrecioDomicilio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtPrecioDomicilioActionPerformed(evt);
+            }
+        });
+        getContentPane().add(txtPrecioDomicilio, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 230, 50, 20));
+
+        txtPrecioPresencial.setEditable(false);
+        getContentPane().add(txtPrecioPresencial, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 190, 50, 20));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
 
-        
-        this.actualizarPagos();
-        
-        this.dispose();
-        
+        if (this.actualizarPagos()) {
+            this.dispose();
+        }
+
 
     }//GEN-LAST:event_btnGuardarActionPerformed
 
     private void btnguardarNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnguardarNuevoActionPerformed
-        this.actualizarPagos();
-        
-        //limpiar();
-        
+        //this.actualizarPagos();
+
+        MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+
     }//GEN-LAST:event_btnguardarNuevoActionPerformed
 
     private void txtPagoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPagoActionPerformed
@@ -248,19 +325,73 @@ public class PagosManualesForm extends javax.swing.JDialog {
     }//GEN-LAST:event_txtPagoActionPerformed
 
     private void btnSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalirActionPerformed
-        // TODO add your handling code here:
+        this.dispose();
     }//GEN-LAST:event_btnSalirActionPerformed
+
+    private void rdbEspecificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbEspecificarActionPerformed
+        this.txtEspecificarPrecio.setEditable(true);
+
+    }//GEN-LAST:event_rdbEspecificarActionPerformed
+
+    private void rdbPresencialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbPresencialActionPerformed
+        this.txtEspecificarPrecio.setEditable(false);
+
+    }//GEN-LAST:event_rdbPresencialActionPerformed
+
+    private void txtEspecificarPrecioKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtEspecificarPrecioKeyPressed
+
+    }//GEN-LAST:event_txtEspecificarPrecioKeyPressed
+
+    private void txtEspecificarPrecioKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtEspecificarPrecioKeyReleased
+
+    }//GEN-LAST:event_txtEspecificarPrecioKeyReleased
+
+    private void txtEspecificarPrecioKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtEspecificarPrecioKeyTyped
+
+    }//GEN-LAST:event_txtEspecificarPrecioKeyTyped
+
+    private void rdbDomicilioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbDomicilioActionPerformed
+
+    }//GEN-LAST:event_rdbDomicilioActionPerformed
+
+    private void txtPrecioDomicilioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPrecioDomicilioActionPerformed
+
+    }//GEN-LAST:event_txtPrecioDomicilioActionPerformed
+
+    private void cmbAlumnoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbAlumnoItemStateChanged
+        String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
+        int codigoAlumno = Integer.parseInt(filaCombobox[0]);
+
+        double precioPresencial = VariablesGlobales.conexion.devolverValorDouble("precio_base",
+                "alumnos",
+                "id = " + codigoAlumno);
+
+        double precioDomicilio = VariablesGlobales.conexion.devolverValorDouble("precio_domicilio",
+                "alumnos",
+                "id = " + codigoAlumno);
+
+        this.txtPrecioPresencial.setText(precioPresencial + "");
+        this.txtPrecioDomicilio.setText(precioDomicilio + "");
+    }//GEN-LAST:event_cmbAlumnoItemStateChanged
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnGuardar;
     private javax.swing.JButton btnSalir;
     private javax.swing.JButton btnguardarNuevo;
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JComboBox<String> cmbAlumno;
     private com.toedter.calendar.JDateChooser dtpFechaPago;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JRadioButton rdbDomicilio;
+    private javax.swing.JRadioButton rdbEspecificar;
+    private javax.swing.JRadioButton rdbPresencial;
+    private javax.swing.JTextField txtEspecificarPrecio;
     private javax.swing.JTextField txtPago;
+    private javax.swing.JTextField txtPrecioDomicilio;
+    private javax.swing.JTextField txtPrecioPresencial;
     // End of variables declaration//GEN-END:variables
 }
