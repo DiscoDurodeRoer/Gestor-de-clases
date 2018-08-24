@@ -5,9 +5,11 @@
  */
 package formularios;
 
+import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import es.discoduroderoer.swing.MiSwing;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -22,17 +24,28 @@ public class PagosForm extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
 
-        rellenarPagos();
+        rellenarPagos("");
+
+        this.buttonGroup1.add(this.rdbTodos);
+        this.buttonGroup1.add(this.rdbPagado);
+        this.buttonGroup1.add(this.rdbNoPagado);
+
+        MetodosSueltos.rellenarComboAlumno(cmbAlumno);
+        this.setLocationRelativeTo(null);
 
     }
 
-    private void rellenarPagos() {
+    private void rellenarPagos(String sqlAdicional) {
 
-        String sql = "select p.id_pago, p.fecha as fecha_pago, "
-                + "c.fecha as fecha_clase, a.nombre || apellidos as alumno,"
+        String sqlBase = "select p.id_pago, p.fecha as fecha_pago, "
+                + "c.fecha as fecha_clase, a.nombre || apellidos as alumno, "
                 + "c.precio as precio_clase, p.pagado "
                 + "from clases c, pagos p, alumnos a "
-                + "where c.id_clase = p.id_clase and a.id = c.id_alumno";
+                + "where c.id_clase = p.id_clase and a.id = c.id_alumno ";
+
+        String sql = sqlBase + sqlAdicional;
+
+        System.out.println(sql);
 
         modelo = new DefaultTableModel() {
             @Override
@@ -60,10 +73,23 @@ public class PagosForm extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblPagos = new javax.swing.JTable();
+        dtpFI = new com.toedter.calendar.JDateChooser();
+        dtpFF = new com.toedter.calendar.JDateChooser();
+        btnfiltrar = new javax.swing.JButton();
+        btnLimpiar = new javax.swing.JButton();
+        cmbAlumno = new javax.swing.JComboBox<>();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        rdbNoPagado = new javax.swing.JRadioButton();
+        rdbPagado = new javax.swing.JRadioButton();
+        rdbTodos = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         tblPagos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -78,29 +104,126 @@ public class PagosForm extends javax.swing.JDialog {
         ));
         jScrollPane1.setViewportView(tblPagos);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 574, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(107, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(123, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(24, 123, 620, 400));
+        getContentPane().add(dtpFI, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 80, -1, -1));
+        getContentPane().add(dtpFF, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 80, -1, -1));
+
+        btnfiltrar.setText("Filtrar");
+        btnfiltrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnfiltrarActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnfiltrar, new org.netbeans.lib.awtextra.AbsoluteConstraints(509, 36, 65, -1));
+
+        btnLimpiar.setText("Limpiar");
+        btnLimpiar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLimpiarActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnLimpiar, new org.netbeans.lib.awtextra.AbsoluteConstraints(509, 70, -1, -1));
+
+        cmbAlumno.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        getContentPane().add(cmbAlumno, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 40, 170, -1));
+
+        jLabel1.setText("F. fin");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 80, -1, -1));
+
+        jLabel2.setText("F. inicio");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 80, -1, -1));
+
+        jLabel3.setText("Alumno");
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 20, -1, -1));
+
+        rdbNoPagado.setText("No pagado");
+        getContentPane().add(rdbNoPagado, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 80, -1, 30));
+
+        rdbPagado.setText("Pagado");
+        rdbPagado.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rdbPagadoActionPerformed(evt);
+            }
+        });
+        getContentPane().add(rdbPagado, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 50, 80, 30));
+
+        rdbTodos.setSelected(true);
+        rdbTodos.setText("Todos");
+        getContentPane().add(rdbTodos, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 30, 80, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void rdbPagadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbPagadoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_rdbPagadoActionPerformed
+
+    private void btnfiltrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnfiltrarActionPerformed
+
+        String sqlAdicional = "";
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        String formatoFechaClase;
+
+        if (this.cmbAlumno.getSelectedIndex() != 0) {
+            String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
+            int codigoAlumno = Integer.parseInt(filaCombobox[0]);
+            sqlAdicional += " and a.id = " + codigoAlumno;
+
+        }
+
+        if (!this.rdbTodos.isSelected()) {
+
+            if (this.rdbPagado.isSelected()) {
+                sqlAdicional += " and precio_clase = p.pagado";
+            } else {
+                sqlAdicional += " and precio_clase <> p.pagado";
+            }
+
+        }
+
+        System.out.println(this.dtpFI.getDate());
+        System.out.println(this.dtpFI.isValid());
+
+        if (this.dtpFI.getDate() != null) {
+
+            formatoFechaClase = sdf.format(this.dtpFI.getDate());
+            sqlAdicional += " and fecha_pago >= '" + formatoFechaClase + "'";
+        }
+
+        if (this.dtpFF.getDate() != null) {
+            formatoFechaClase = sdf.format(this.dtpFF.getDate());
+            sqlAdicional += " and fecha_pago <= '" + formatoFechaClase + "'";
+        }
+
+        rellenarPagos(sqlAdicional);
+
+
+    }//GEN-LAST:event_btnfiltrarActionPerformed
+
+    private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarActionPerformed
+
+        MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+        this.rdbTodos.setSelected(true);
+        rellenarPagos("");
+
+
+    }//GEN-LAST:event_btnLimpiarActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnLimpiar;
+    private javax.swing.JButton btnfiltrar;
+    private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JComboBox<String> cmbAlumno;
+    private com.toedter.calendar.JDateChooser dtpFF;
+    private com.toedter.calendar.JDateChooser dtpFI;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JRadioButton rdbNoPagado;
+    private javax.swing.JRadioButton rdbPagado;
+    private javax.swing.JRadioButton rdbTodos;
     private javax.swing.JTable tblPagos;
     // End of variables declaration//GEN-END:variables
 }

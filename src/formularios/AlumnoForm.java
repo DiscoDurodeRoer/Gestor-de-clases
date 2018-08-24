@@ -31,6 +31,8 @@ public class AlumnoForm extends javax.swing.JDialog {
         this.parent = parent;
         this.idModificar = -1;
         inicializar();
+        this.setLocationRelativeTo(null);
+
     }
 
     //Modificacion de alumno
@@ -40,6 +42,8 @@ public class AlumnoForm extends javax.swing.JDialog {
         this.idModificar = id;
         btnGuadarEnviar.setVisible(false);
         inicializar();
+        this.setLocationRelativeTo(null);
+
     }
 
     private void inicializar() {

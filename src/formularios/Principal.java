@@ -5,33 +5,45 @@
  */
 package formularios;
 
+import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import es.discoduroderoer.swing.LAF;
 import es.discoduroderoer.swing.MiSwing;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import javax.swing.table.DefaultTableModel;
 
 public class Principal extends javax.swing.JFrame {
-    
+
     private DefaultTableModel modelo;
-    
+
     public Principal() {
-        
+
         LAF.disenoGUI();
         initComponents();
-        rellenarClases();
+        rellenarClases("");
         this.setLocationRelativeTo(null);
+        MetodosSueltos.rellenarComboAlumno(cmbAlumno);
+
+        this.buttonGroup1.add(this.rdbTodas);
+        this.buttonGroup1.add(this.rdbPendientes);
+        this.buttonGroup1.add(this.rdbRealizadas);
+        
         
     }
-    
-    private void rellenarClases() {
-        
-        String sql = "select id_clase, nombre || ' ' || apellidos as alumno, "
+
+    private void rellenarClases(String sqlAdicional) {
+
+        String sqlBase = "select id_clase, nombre || ' ' || apellidos as alumno, "
                 + "fecha, hora_inicio as inicio, hora_fin as fin,"
                 + "precio "
                 + "from clases c, alumnos a "
                 + "where c.id_alumno = a.id";
+
+        String sql = sqlBase + sqlAdicional;
         
+        System.out.println(sql);
+
         modelo = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -39,7 +51,7 @@ public class Principal extends javax.swing.JFrame {
             }
         };
         this.tblClases.setModel(modelo);
-        
+
         try {
             VariablesGlobales.conexion.ejecutarConsulta(sql);
             VariablesGlobales.conexion.rellenaJTableBD(modelo);
@@ -60,16 +72,21 @@ public class Principal extends javax.swing.JFrame {
 
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem6 = new javax.swing.JMenuItem();
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblClases = new javax.swing.JTable();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jDateChooser1 = new com.toedter.calendar.JDateChooser();
-        jDateChooser2 = new com.toedter.calendar.JDateChooser();
-        jButton1 = new javax.swing.JButton();
+        cmbAlumno = new javax.swing.JComboBox<>();
+        dtpFI = new com.toedter.calendar.JDateChooser();
+        dtpFF = new com.toedter.calendar.JDateChooser();
+        btnFiltrare = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
+        btnLimpiar = new javax.swing.JButton();
+        rdbPendientes = new javax.swing.JRadioButton();
+        rdbRealizadas = new javax.swing.JRadioButton();
+        rdbTodas = new javax.swing.JRadioButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         menuAlu = new javax.swing.JMenu();
         mitAluCrear = new javax.swing.JMenuItem();
@@ -88,6 +105,7 @@ public class Principal extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Gestor de clases");
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         tblClases.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -102,22 +120,50 @@ public class Principal extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(tblClases);
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(7, 152, 633, 274));
+
+        cmbAlumno.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cmbAlumno.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox1ActionPerformed(evt);
+                cmbAlumnoActionPerformed(evt);
             }
         });
+        getContentPane().add(cmbAlumno, new org.netbeans.lib.awtextra.AbsoluteConstraints(26, 39, 240, -1));
+        getContentPane().add(dtpFI, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 110, -1, -1));
+        getContentPane().add(dtpFF, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 110, -1, 20));
 
-        jButton1.setText("Filtrar");
+        btnFiltrare.setText("Filtrar");
+        btnFiltrare.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFiltrareActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnFiltrare, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 40, 107, -1));
 
         jLabel1.setText("Inicio");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 90, -1, -1));
 
         jLabel2.setText("Fin");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 80, -1, -1));
 
         jLabel3.setText("Alumno");
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(26, 16, -1, -1));
 
         jButton2.setText("Dar por pagada");
+        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(522, 121, -1, -1));
+
+        btnLimpiar.setText("Limpiar");
+        getContentPane().add(btnLimpiar, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 80, 110, -1));
+
+        rdbPendientes.setText("Pendientes");
+        getContentPane().add(rdbPendientes, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 100, -1, -1));
+
+        rdbRealizadas.setText("Realizadas");
+        getContentPane().add(rdbRealizadas, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 70, -1, -1));
+
+        rdbTodas.setSelected(true);
+        rdbTodas.setText("Todas");
+        getContentPane().add(rdbTodas, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 40, -1, -1));
 
         menuAlu.setText("Alumno");
 
@@ -185,68 +231,11 @@ public class Principal extends javax.swing.JFrame {
 
         setJMenuBar(jMenuBar1);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 527, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(26, 26, 26)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1))
-                        .addGap(28, 28, 28)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jDateChooser2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addGap(18, 18, 18)
-                .addComponent(jButton2)
-                .addContainerGap(13, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jComboBox1)
-                        .addComponent(jDateChooser1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jDateChooser2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jButton1))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 51, Short.MAX_VALUE)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(29, 29, 29))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(108, 108, 108)
-                        .addComponent(jButton2)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-        );
-
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void mitAluCrearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mitAluCrearActionPerformed
-        
+
         AlumnoForm ventana = new AlumnoForm(this, true);
         ventana.setVisible(true);
 
@@ -259,20 +248,20 @@ public class Principal extends javax.swing.JFrame {
     private void jMenuItem9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem9ActionPerformed
         VerAlumnosForm ventana = new VerAlumnosForm(this, true);
         ventana.setVisible(true);
-        
+
 
     }//GEN-LAST:event_jMenuItem9ActionPerformed
 
     private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
-        
+
         ClasesForm ventana = new ClasesForm(this, true);
         ventana.setVisible(true);
 
     }//GEN-LAST:event_jMenuItem5ActionPerformed
 
-    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
+    private void cmbAlumnoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbAlumnoActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBox1ActionPerformed
+    }//GEN-LAST:event_cmbAlumnoActionPerformed
 
     private void jMenuItem8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem8ActionPerformed
         PagosForm ventana = new PagosForm(this, true);
@@ -283,6 +272,45 @@ public class Principal extends javax.swing.JFrame {
         PagosManualesForm ventana = new PagosManualesForm(this, true);
         ventana.setVisible(true);
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void btnFiltrareActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFiltrareActionPerformed
+
+        String sqlAdicional = "";
+        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
+        String formatoFechaClase;
+
+        if (this.cmbAlumno.getSelectedIndex() != 0) {
+            String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
+            int codigoAlumno = Integer.parseInt(filaCombobox[0]);
+            sqlAdicional += " and a.id = " + codigoAlumno;
+
+        }
+
+        if (!this.rdbTodas.isSelected()) {
+
+            if (this.rdbRealizadas.isSelected()) {
+                sqlAdicional += " and c.fecha is not null";
+            } else {
+                sqlAdicional += " and c.fecha is null";
+            }
+
+        }
+
+        if (this.dtpFI.getDate() != null) {
+
+            formatoFechaClase = sdf.format(this.dtpFI.getDate());
+            sqlAdicional += " and fecha >=  '" + formatoFechaClase + "'";
+        }
+
+        if (this.dtpFF.getDate() != null) {
+            formatoFechaClase = sdf.format(this.dtpFF.getDate());
+            sqlAdicional += " and fecha <='" + formatoFechaClase + "'";
+        }
+
+        rellenarClases(sqlAdicional);
+
+
+    }//GEN-LAST:event_btnFiltrareActionPerformed
 
     /**
      * @param args the command line arguments
@@ -320,11 +348,13 @@ public class Principal extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton btnFiltrare;
+    private javax.swing.JButton btnLimpiar;
+    private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JComboBox<String> cmbAlumno;
+    private com.toedter.calendar.JDateChooser dtpFF;
+    private com.toedter.calendar.JDateChooser dtpFI;
     private javax.swing.JButton jButton2;
-    private javax.swing.JComboBox<String> jComboBox1;
-    private com.toedter.calendar.JDateChooser jDateChooser1;
-    private com.toedter.calendar.JDateChooser jDateChooser2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -342,6 +372,9 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JMenu menuAlu;
     private javax.swing.JMenuItem mitAluCrear;
+    private javax.swing.JRadioButton rdbPendientes;
+    private javax.swing.JRadioButton rdbRealizadas;
+    private javax.swing.JRadioButton rdbTodas;
     private javax.swing.JTable tblClases;
     // End of variables declaration//GEN-END:variables
 }

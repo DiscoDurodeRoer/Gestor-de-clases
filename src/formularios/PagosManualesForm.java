@@ -12,9 +12,6 @@ import es.discoduroderoer.swing.MiSwing;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**
@@ -33,8 +30,10 @@ public class PagosManualesForm extends javax.swing.JDialog {
         this.buttonGroup1.add(this.rdbDomicilio);
         this.buttonGroup1.add(this.rdbEspecificar);
         this.buttonGroup1.add(this.rdbPresencial);
-        
+
         MetodosSueltos.rellenarComboAlumno(cmbAlumno);
+        this.setLocationRelativeTo(parent);
+
     }
 
     public boolean actualizarPagos() {
@@ -112,7 +111,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
                     System.out.println(sql);
 
                     VariablesGlobales.conexion.ejecutarInstruccion(sql);
-                    
+
                     pago = pago - diferencia;
                 }
 

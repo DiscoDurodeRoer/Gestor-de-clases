@@ -41,8 +41,6 @@ public class ClasesForm extends javax.swing.JDialog {
 
     }
 
-    
-
     private void calcularPrecioFinal() {
 
         double precioFinal = 0;
@@ -286,13 +284,16 @@ public class ClasesForm extends javax.swing.JDialog {
             codigoAlumno = Integer.parseInt(filaCombobox[0]);
         }
 
-        if (!this.dtpFecha.isValid()) {
+       /* if (!this.dtpFecha.isValid()) {
             errores += "- La fecha no es válida \n";
         } else {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             formatoFechaClase = sdf.format(this.dtpFecha.getDate());
         }
-
+        */
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            formatoFechaClase = sdf.format(this.dtpFecha.getDate());
+       
         if (this.cmbHoraInicio.getSelectedIndex() > this.cmbHoraFin.getSelectedIndex()) {
             errores += "- Las horas no estan correctas \n";
         } else {
@@ -321,7 +322,7 @@ public class ClasesForm extends javax.swing.JDialog {
                 double pagado = 0;
                 if (this.rdbPagado.isSelected()) {
                     pagado = precioFinal;
-                }else{
+                } else {
                     formatoFechaClase = null;
                 }
 
