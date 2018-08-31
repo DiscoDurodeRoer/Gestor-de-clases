@@ -6,6 +6,7 @@
 package formularios;
 
 import clases.MetodosSueltos;
+import clases.RendererPagos;
 import clases.VariablesGlobales;
 import es.discoduroderoer.swing.MiSwing;
 import java.sql.SQLException;
@@ -37,8 +38,8 @@ public class PagosForm extends javax.swing.JDialog {
 
     private void rellenarPagos(String sqlAdicional) {
 
-        String sqlBase = "select p.id_pago, p.fecha as fecha_pago, "
-                + "c.fecha as fecha_clase, a.nombre || apellidos as alumno, "
+        String sqlBase = "select p.id_pago, ifnull(strftime('%d/%m/%Y', p.fecha),'Clase no pagada')  as fecha_pago, "
+                + "ifnull(strftime('%d/%m/%Y', c.fecha),'Pendiente de realizar') as fecha_clase, a.nombre || apellidos as alumno, "
                 + "c.precio as precio_clase, p.pagado "
                 + "from clases c, pagos p, alumnos a "
                 + "where c.id_clase = p.id_clase and a.id = c.id_alumno ";
@@ -55,6 +56,8 @@ public class PagosForm extends javax.swing.JDialog {
         };
         this.tblPagos.setModel(modelo);
 
+        this.tblPagos.setDefaultRenderer(Object.class, new RendererPagos());
+        
         try {
             VariablesGlobales.conexion.ejecutarConsulta(sql);
             VariablesGlobales.conexion.rellenaJTableBD(modelo);
@@ -161,8 +164,18 @@ public class PagosForm extends javax.swing.JDialog {
     private void btnfiltrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnfiltrarActionPerformed
 
         String sqlAdicional = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
         String formatoFechaClase;
+
+        boolean noPagadoAct = false, inicioAct = false;
+
+        String parentesisApertura = "";
+        String parentesisCierre = "";
+
+        if (this.dtpFF.getDate() != null && this.dtpFI.getDate() != null) {
+            parentesisApertura = "(";
+            parentesisCierre = ")";
+        }
 
         if (this.cmbAlumno.getSelectedIndex() != 0) {
             String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
@@ -176,23 +189,43 @@ public class PagosForm extends javax.swing.JDialog {
             if (this.rdbPagado.isSelected()) {
                 sqlAdicional += " and precio_clase = p.pagado";
             } else {
-                sqlAdicional += " and precio_clase <> p.pagado";
+                sqlAdicional += " and (precio_clase <> p.pagado";
+                noPagadoAct = true;
             }
 
         }
 
-        System.out.println(this.dtpFI.getDate());
-        System.out.println(this.dtpFI.isValid());
-
         if (this.dtpFI.getDate() != null) {
 
             formatoFechaClase = sdf.format(this.dtpFI.getDate());
-            sqlAdicional += " and fecha_pago >= '" + formatoFechaClase + "'";
+
+            if (noPagadoAct) {
+                sqlAdicional += " or " + parentesisApertura + " p.fecha >= '" + formatoFechaClase + "'";
+            } else {
+                sqlAdicional += " and p.fecha >= '" + formatoFechaClase + "'";
+            }
+            inicioAct=true;
+
         }
 
         if (this.dtpFF.getDate() != null) {
             formatoFechaClase = sdf.format(this.dtpFF.getDate());
-            sqlAdicional += " and fecha_pago <= '" + formatoFechaClase + "'";
+
+            if (noPagadoAct) {
+                if (inicioAct) {
+                    sqlAdicional += " and p.fecha <= '" + formatoFechaClase + "'" + parentesisCierre;
+                } else {
+                    sqlAdicional += " or p.fecha <= '" + formatoFechaClase + "'" + parentesisCierre;
+                }
+
+            } else {
+                sqlAdicional += " and p.fecha <= '" + formatoFechaClase + "'";
+            }
+
+        }
+
+        if (noPagadoAct) {
+            sqlAdicional += ")";
         }
 
         rellenarPagos(sqlAdicional);

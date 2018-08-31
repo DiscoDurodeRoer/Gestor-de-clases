@@ -291,8 +291,8 @@ public class ClasesForm extends javax.swing.JDialog {
             formatoFechaClase = sdf.format(this.dtpFecha.getDate());
         }
         */
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            formatoFechaClase = sdf.format(this.dtpFecha.getDate());
+        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
+        formatoFechaClase = sdf.format(this.dtpFecha.getDate());
        
         if (this.cmbHoraInicio.getSelectedIndex() > this.cmbHoraFin.getSelectedIndex()) {
             errores += "- Las horas no estan correctas \n";
@@ -322,8 +322,15 @@ public class ClasesForm extends javax.swing.JDialog {
                 double pagado = 0;
                 if (this.rdbPagado.isSelected()) {
                     pagado = precioFinal;
+                    sql = "insert into pagos "
+                        + "(fecha, id_clase, pagado) values "
+                        + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";
                 } else {
+                 
                     formatoFechaClase = null;
+                    sql = "insert into pagos "
+                        + "(id_clase, pagado) values "
+                        + "(" + idClase + ", " + pagado + ")";
                 }
 
                 sql = "insert into pagos "

@@ -6,9 +6,11 @@
 package formularios;
 
 import clases.MetodosSueltos;
+import clases.RendererClases;
 import clases.VariablesGlobales;
 import es.discoduroderoer.swing.LAF;
 import es.discoduroderoer.swing.MiSwing;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import javax.swing.table.DefaultTableModel;
@@ -28,20 +30,25 @@ public class Principal extends javax.swing.JFrame {
         this.buttonGroup1.add(this.rdbTodas);
         this.buttonGroup1.add(this.rdbPendientes);
         this.buttonGroup1.add(this.rdbRealizadas);
-        
-        
+
     }
 
     private void rellenarClases(String sqlAdicional) {
 
         String sqlBase = "select id_clase, nombre || ' ' || apellidos as alumno, "
-                + "fecha, hora_inicio as inicio, hora_fin as fin,"
+                + " ifnull(strftime('%d/%m/%Y', fecha), 'Pendiente de realizar') as fecha, hora_inicio as inicio, hora_fin as fin,"
                 + "precio "
                 + "from clases c, alumnos a "
                 + "where c.id_alumno = a.id";
 
         String sql = sqlBase + sqlAdicional;
-        
+
+        String sqlGanado = "select sum(p.pagado) "
+                + " from clases c, pagos p, alumnos a "
+                + " where c.id_clase = p.id_clase and a.id = c.id_alumno ";
+
+        sqlGanado = sqlGanado + sqlAdicional;
+
         System.out.println(sql);
 
         modelo = new DefaultTableModel() {
@@ -52,10 +59,18 @@ public class Principal extends javax.swing.JFrame {
         };
         this.tblClases.setModel(modelo);
 
+        this.tblClases.setDefaultRenderer(Object.class, new RendererClases());
+
         try {
             VariablesGlobales.conexion.ejecutarConsulta(sql);
             VariablesGlobales.conexion.rellenaJTableBD(modelo);
             MiSwing.ocultarColumnaJTable(tblClases, 0);
+
+            VariablesGlobales.conexion.ejecutarConsulta(sqlGanado);
+            ResultSet rs = VariablesGlobales.conexion.getResultSet();
+            rs.next();
+            this.txtGanado.setText(rs.getDouble(1) + "");
+
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
@@ -87,6 +102,8 @@ public class Principal extends javax.swing.JFrame {
         rdbPendientes = new javax.swing.JRadioButton();
         rdbRealizadas = new javax.swing.JRadioButton();
         rdbTodas = new javax.swing.JRadioButton();
+        txtGanado = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         menuAlu = new javax.swing.JMenu();
         mitAluCrear = new javax.swing.JMenuItem();
@@ -164,6 +181,12 @@ public class Principal extends javax.swing.JFrame {
         rdbTodas.setSelected(true);
         rdbTodas.setText("Todas");
         getContentPane().add(rdbTodas, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 40, -1, -1));
+
+        txtGanado.setEditable(false);
+        getContentPane().add(txtGanado, new org.netbeans.lib.awtextra.AbsoluteConstraints(159, 440, 480, 30));
+
+        jLabel4.setText("Ganado");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 440, 50, 30));
 
         menuAlu.setText("Alumno");
 
@@ -279,6 +302,16 @@ public class Principal extends javax.swing.JFrame {
         SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
         String formatoFechaClase;
 
+        String parentesisApertura = "";
+        String parentesisCierre = "";
+
+        if (this.dtpFF.getDate() != null && this.dtpFI.getDate() != null) {
+            parentesisApertura = "(";
+            parentesisCierre = ")";
+        }
+
+        boolean pendientesAct = false, inicioAct = false;
+
         if (this.cmbAlumno.getSelectedIndex() != 0) {
             String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
             int codigoAlumno = Integer.parseInt(filaCombobox[0]);
@@ -291,7 +324,8 @@ public class Principal extends javax.swing.JFrame {
             if (this.rdbRealizadas.isSelected()) {
                 sqlAdicional += " and c.fecha is not null";
             } else {
-                sqlAdicional += " and c.fecha is null";
+                sqlAdicional += " and (c.fecha is null";
+                pendientesAct = true;
             }
 
         }
@@ -299,12 +333,33 @@ public class Principal extends javax.swing.JFrame {
         if (this.dtpFI.getDate() != null) {
 
             formatoFechaClase = sdf.format(this.dtpFI.getDate());
-            sqlAdicional += " and fecha >=  '" + formatoFechaClase + "'";
+
+            if (pendientesAct) {
+                sqlAdicional += " or " + parentesisApertura + " c.fecha >=  '" + formatoFechaClase + "'";
+            } else {
+                sqlAdicional += " and c.fecha >=  '" + formatoFechaClase + "'";
+            }
+            inicioAct = true;
         }
 
         if (this.dtpFF.getDate() != null) {
             formatoFechaClase = sdf.format(this.dtpFF.getDate());
-            sqlAdicional += " and fecha <='" + formatoFechaClase + "'";
+
+            if (pendientesAct) {
+                if (inicioAct) {
+                    sqlAdicional += " and c.fecha <='" + formatoFechaClase + "' " + parentesisCierre;
+                } else {
+                    sqlAdicional += " or c.fecha <='" + formatoFechaClase + "' " + parentesisCierre;
+                }
+
+            } else {
+                sqlAdicional += " and c.fecha <='" + formatoFechaClase + "'";
+            }
+
+        }
+
+        if (pendientesAct) {
+            sqlAdicional += ")";
         }
 
         rellenarClases(sqlAdicional);
@@ -358,6 +413,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
@@ -376,5 +432,6 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JRadioButton rdbRealizadas;
     private javax.swing.JRadioButton rdbTodas;
     private javax.swing.JTable tblClases;
+    private javax.swing.JTextField txtGanado;
     // End of variables declaration//GEN-END:variables
 }

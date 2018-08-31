@@ -66,7 +66,8 @@ public class PagosManualesForm extends javax.swing.JDialog {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
         }*/
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        //SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
         formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
 
         if (errores.equals("")) {
