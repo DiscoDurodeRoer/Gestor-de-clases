@@ -18,10 +18,10 @@ public class RendererClases extends DefaultTableCellRenderer {
         String fecha = (String) table.getValueAt(row, 2);
 
         if (fecha.equals("Pendiente de realizar")) {
-            setBackground(Color.YELLOW);
+            setBackground(new Color(243, 247, 129));
             setForeground(Color.BLACK);
         } else {
-            setBackground(Color.GREEN);
+            setBackground(new Color(129, 247, 129));
             setForeground(Color.BLACK);
         }
 

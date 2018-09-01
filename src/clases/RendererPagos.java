@@ -19,13 +19,13 @@ public class RendererPagos extends DefaultTableCellRenderer {
         double pagado = (Double) table.getValueAt(row, 5);
 
         if (pagado == 0) {
-            setBackground(Color.RED);
+            setBackground(new Color(250, 88, 88));
             setForeground(Color.BLACK);
         } else if (pagado < pago_clase) {
-            setBackground(Color.YELLOW);
+            setBackground(new Color(243, 247, 129));
             setForeground(Color.BLACK);
         } else {
-            setBackground(Color.GREEN);
+            setBackground(new Color(129, 247, 129));
             setForeground(Color.BLACK);
 
         }
