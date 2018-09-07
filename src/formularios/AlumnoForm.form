@@ -208,7 +208,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="btnGuadarEnviar">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Guardar y seguir"/>
+        <Property name="text" type="java.lang.String" value="Guardar y nuevo"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnGuadarEnviarActionPerformed"/>

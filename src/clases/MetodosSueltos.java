@@ -13,13 +13,18 @@ public class MetodosSueltos {
 
         String sql = "Select id, nombre || ' ' || apellidos as nombreC "
                 + "from alumnos "
-                + "where activado = 1";
+                + "where activado = 1 "
+                + "order by nombreC";
         VariablesGlobales.conexion.rellenaComboBox2Columnas(cmbAlumno,
                 sql,
                 "--Selecciona un alumno",
                 "id",
                 "nombreC");
 
+    }
+    
+    public static boolean validarTelefono(String texto){
+        return texto.matches("[0-9]{9}");
     }
     
 }

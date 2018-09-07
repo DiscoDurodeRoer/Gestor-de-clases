@@ -38,13 +38,15 @@ public class PagosForm extends javax.swing.JDialog {
 
     private void rellenarPagos(String sqlAdicional) {
 
-        String sqlBase = "select p.id_pago, ifnull(strftime('%d/%m/%Y', p.fecha),'Clase no pagada')  as fecha_pago, "
-                + "ifnull(strftime('%d/%m/%Y', c.fecha),'Pendiente de realizar') as fecha_clase, a.nombre || apellidos as alumno, "
-                + "c.precio as precio_clase, p.pagado "
+        String sqlBase = "select p.id_pago, "
+                + "ifnull(strftime('%d/%m/%Y', p.fecha),'Clase no pagada')  as 'Fecha pago', "
+                + "ifnull(strftime('%d/%m/%Y', c.fecha),'Pendiente de realizar') as 'Fecha clase', "
+                + "a.nombre || ' ' || apellidos as Alumno, "
+                + "c.precio as precio_clase, p.pagado as Pagado "
                 + "from clases c, pagos p, alumnos a "
                 + "where c.id_clase = p.id_clase and a.id = c.id_alumno ";
 
-        String sql = sqlBase + sqlAdicional;
+        String sql = sqlBase + sqlAdicional + " order by p.fecha desc, c.fecha desc";
 
         System.out.println(sql);
 
@@ -187,9 +189,9 @@ public class PagosForm extends javax.swing.JDialog {
         if (!this.rdbTodos.isSelected()) {
 
             if (this.rdbPagado.isSelected()) {
-                sqlAdicional += " and precio_clase = p.pagado";
+                sqlAdicional += " and precio_clase <= p.pagado";
             } else {
-                sqlAdicional += " and (precio_clase <> p.pagado";
+                sqlAdicional += " and (precio_clase > p.pagado";
                 noPagadoAct = true;
             }
 

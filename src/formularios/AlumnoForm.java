@@ -5,6 +5,7 @@
  */
 package formularios;
 
+import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -159,7 +160,7 @@ public class AlumnoForm extends javax.swing.JDialog {
             }
         });
 
-        btnGuadarEnviar.setText("Guardar y seguir");
+        btnGuadarEnviar.setText("Guardar y nuevo");
         btnGuadarEnviar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnGuadarEnviarActionPerformed(evt);
@@ -288,18 +289,13 @@ public class AlumnoForm extends javax.swing.JDialog {
 
         String apellidos = this.txtApellidos.getText();
 
-        if (apellidos.equals("")) {
-            errores += "- Los apellidos son obligatorios\n";
-        }
-
         String telefono = this.txtTelefono.getText();
-
-        if (telefono.equals("")) {
-            errores += "- El telefono es obligatorio\n";
+        if (!telefono.isEmpty() && !MetodosSueltos.validarTelefono(telefono)) {
+            errores += "- El telefono no es valido\n";
         }
 
         String email = this.txtEmail.getText();
-        if (!ExpresionesRegulares.validar_Mail_Exp(email)) {
+        if (!email.isEmpty() && !ExpresionesRegulares.validar_Mail_Exp(email)) {
             errores += "- El correo no es valido\n";
         }
 

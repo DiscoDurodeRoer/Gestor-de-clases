@@ -13,6 +13,7 @@ import java.util.Date;
 import javax.swing.JOptionPane;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
 import es.discoduroderoer.fechas.Horas;
+import es.discoduroderoer.swing.MiSwing;
 
 /**
  *
@@ -78,6 +79,101 @@ public class ClasesForm extends javax.swing.JDialog {
 
     }
 
+    private boolean guardar() {
+        String errores = "";
+
+        int codigoAlumno = 0;
+        String horaInicio = null, horaFin = null;
+        double precioFinal = 0;
+        String formatoFechaClase = null;
+
+        precioFinal = Double.parseDouble(this.txtPrecioFinal.getText());
+
+        if (this.cmbAlumno.getSelectedIndex() == 0) {
+            errores += "- Debes seleccionar un alumno \n";
+        } else {
+            String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
+            codigoAlumno = Integer.parseInt(filaCombobox[0]);
+        }
+
+        /* if (!this.dtpFecha.isValid()) {
+            errores += "- La fecha no es válida \n";
+        } else {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            formatoFechaClase = sdf.format(this.dtpFecha.getDate());
+        }
+         */
+        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
+        formatoFechaClase = sdf.format(this.dtpFecha.getDate());
+
+        if (this.cmbHoraInicio.getSelectedIndex() > this.cmbHoraFin.getSelectedIndex()) {
+            errores += "- Las horas no estan correctas \n";
+        } else {
+            horaInicio = this.cmbHoraInicio.getSelectedItem().toString();
+            horaFin = this.cmbHoraFin.getSelectedItem().toString();
+        }
+
+        if (precioFinal == 0) {
+            errores += "- El precio final no puede ser 0. \n";
+        }
+
+        if (errores.equals("")) {
+
+            try {
+
+                String sql = "insert into clases "
+                        + "(fecha, hora_inicio, hora_fin, "
+                        + "id_alumno, precio) values "
+                        + "('" + formatoFechaClase + "', '" + horaInicio + "',"
+                        + "'" + horaFin + "', " + codigoAlumno + ", " + precioFinal + ")";
+
+                VariablesGlobales.conexion.ejecutarInstruccion(sql);
+
+                int idClase = VariablesGlobales.conexion.ultimoID("id_clase", "clases");
+
+                double pagado = 0;
+                if (this.rdbPagado.isSelected()) {
+                    pagado = precioFinal;
+                    sql = "insert into pagos "
+                            + "(fecha, id_clase, pagado) values "
+                            + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";
+                } else {
+
+                    formatoFechaClase = null;
+                    sql = "insert into pagos "
+                            + "(id_clase, pagado) values "
+                            + "(" + idClase + ", " + pagado + ")";
+                }
+
+                /*sql = "insert into pagos "
+                        + "(fecha, id_clase, pagado) values "
+                        + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";*/
+                VariablesGlobales.conexion.ejecutarInstruccion(sql);
+
+                JOptionPane.showMessageDialog(this,
+                        "Se ha insertado correctamente",
+                        "Éxito",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                return true;
+
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this,
+                        "No se ha insertado correctamente:" + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    errores,
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
+        return false;
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -137,6 +233,8 @@ public class ClasesForm extends javax.swing.JDialog {
         getContentPane().add(btnGuardar, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 360, -1, -1));
 
         cmbHoraInicio.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00" }));
+        cmbHoraInicio.setSelectedItem("17:00");
+        cmbHoraInicio.setToolTipText("");
         cmbHoraInicio.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 cmbHoraInicioItemStateChanged(evt);
@@ -155,6 +253,7 @@ public class ClasesForm extends javax.swing.JDialog {
 
         cmbHoraFin.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00" }));
         cmbHoraFin.setSelectedIndex(2);
+        cmbHoraFin.setSelectedItem("19:00");
         cmbHoraFin.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 cmbHoraFinItemStateChanged(evt);
@@ -268,98 +367,9 @@ public class ClasesForm extends javax.swing.JDialog {
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
 
-        String errores = "";
-
-        int codigoAlumno = 0;
-        String horaInicio = null, horaFin = null;
-        double precioFinal = 0;
-        String formatoFechaClase = null;
-
-        precioFinal = Double.parseDouble(this.txtPrecioFinal.getText());
-
-        if (this.cmbAlumno.getSelectedIndex() == 0) {
-            errores += "- Debes seleccionar un alumno \n";
-        } else {
-            String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
-            codigoAlumno = Integer.parseInt(filaCombobox[0]);
+        if (guardar()) {
+            this.dispose();
         }
-
-       /* if (!this.dtpFecha.isValid()) {
-            errores += "- La fecha no es válida \n";
-        } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            formatoFechaClase = sdf.format(this.dtpFecha.getDate());
-        }
-        */
-        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
-        formatoFechaClase = sdf.format(this.dtpFecha.getDate());
-       
-        if (this.cmbHoraInicio.getSelectedIndex() > this.cmbHoraFin.getSelectedIndex()) {
-            errores += "- Las horas no estan correctas \n";
-        } else {
-            horaInicio = this.cmbHoraInicio.getSelectedItem().toString();
-            horaFin = this.cmbHoraFin.getSelectedItem().toString();
-        }
-
-        if (precioFinal == 0) {
-            errores += "- El precio final no puede ser 0. \n";
-        }
-
-        if (errores.equals("")) {
-
-            try {
-
-                String sql = "insert into clases "
-                        + "(fecha, hora_inicio, hora_fin, "
-                        + "id_alumno, precio) values "
-                        + "('" + formatoFechaClase + "', '" + horaInicio + "',"
-                        + "'" + horaFin + "', " + codigoAlumno + ", " + precioFinal + ")";
-
-                VariablesGlobales.conexion.ejecutarInstruccion(sql);
-
-                int idClase = VariablesGlobales.conexion.ultimoID("id_clase", "clases");
-
-                double pagado = 0;
-                if (this.rdbPagado.isSelected()) {
-                    pagado = precioFinal;
-                    sql = "insert into pagos "
-                        + "(fecha, id_clase, pagado) values "
-                        + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";
-                } else {
-                 
-                    formatoFechaClase = null;
-                    sql = "insert into pagos "
-                        + "(id_clase, pagado) values "
-                        + "(" + idClase + ", " + pagado + ")";
-                }
-
-                sql = "insert into pagos "
-                        + "(fecha, id_clase, pagado) values "
-                        + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";
-
-                VariablesGlobales.conexion.ejecutarInstruccion(sql);
-
-                JOptionPane.showMessageDialog(this,
-                        "Se ha insertado correctamente",
-                        "Éxito",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                this.dispose();
-
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "No se ha insertado correctamente:" + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-
-        } else {
-            JOptionPane.showMessageDialog(this,
-                    errores,
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-
 
     }//GEN-LAST:event_btnGuardarActionPerformed
 
@@ -402,6 +412,18 @@ public class ClasesForm extends javax.swing.JDialog {
 
     private void cmbHoraInicioItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbHoraInicioItemStateChanged
         this.calcularPrecioFinal();
+
+        int indiceActual = this.cmbHoraInicio.getSelectedIndex();
+        int indiceFin;
+        if ((indiceActual + 4) >= this.cmbHoraInicio.getItemCount()) {
+            indiceFin = this.cmbHoraInicio.getItemCount() - 1;
+        } else {
+            indiceFin = indiceActual + 4;
+        }
+
+        this.cmbHoraFin.setSelectedIndex(indiceFin);
+
+
     }//GEN-LAST:event_cmbHoraInicioItemStateChanged
 
     private void cmbHoraFinItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbHoraFinItemStateChanged
@@ -434,7 +456,14 @@ public class ClasesForm extends javax.swing.JDialog {
     }//GEN-LAST:event_rdbPagadoActionPerformed
 
     private void btnGuardarNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarNuevoActionPerformed
-        // TODO add your handling code here:
+
+        if (guardar()) {
+            MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+            this.cmbHoraInicio.setSelectedIndex(13);
+            this.cmbHoraInicio.setSelectedIndex(17);
+        }
+
+
     }//GEN-LAST:event_btnGuardarNuevoActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -20,9 +20,15 @@ public class VerAlumnosForm extends javax.swing.JDialog {
     private DefaultTableModel modeloTabla;
     private java.awt.Frame parent;
 
-    private final String SQL_VER_ALUMNOS = "select a.id, a.Nombre,a.apellidos, a.email,a.telefono,o.nombre as origen "
+    private final String SQL_VER_ALUMNOS = "select a.id, "
+            + "a.Nombre || ' ' || a.apellidos as Alumno, "
+            + "a.email as Email,"
+            + "a.telefono as Telefono,"
+            + "o.nombre as Origen "
             + "from Alumnos a, Origen o "
             + "where a.origen = o.id and a.activado = ";
+
+    private final String ORDERBY_VER_ALUMNOS = " order by Alumno";
 
     public VerAlumnosForm(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -43,6 +49,7 @@ public class VerAlumnosForm extends javax.swing.JDialog {
             sql = SQL_VER_ALUMNOS + "0";
         }
 
+        sql += ORDERBY_VER_ALUMNOS;
         modeloTabla = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -249,7 +256,9 @@ public class VerAlumnosForm extends javax.swing.JDialog {
                 int idAlumno = (Integer) this.tblAlumnos.getValueAt(filaSeleccionada, 0);
                 AlumnoForm form = new AlumnoForm(this.parent, true, idAlumno);
                 form.setVisible(true);
-                
+
+                rellenarAlumnos();
+
             } else {
                 JOptionPane.showMessageDialog(this,
                         "No has seleccionado la fila",
