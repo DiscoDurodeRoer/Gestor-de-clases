@@ -12,11 +12,13 @@ import clases.VariablesGlobales;
 import es.discoduroderoer.swing.LAF;
 import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -24,22 +26,44 @@ public class Principal extends javax.swing.JFrame {
 
     private DefaultTableModel modelo;
 
-    public Principal() {
+    public Principal() throws IOException {
+
+        ServerSocket s = new ServerSocket(6200);
+
         try {
             LAF.disenoGUI();
             initComponents();
-            rellenarClases("");
+
+            this.dtpFI.setDate(MetodosSueltos.inicioMes());
+            this.dtpFF.setDate(MetodosSueltos.finMes());
+
+            filtro();
+
             this.setLocationRelativeTo(null);
             FondoSwing f;
+
+            jMenuItem7.setIcon((new ImageIcon("img/icons/exit.png")));
+            jMenuItem8.setIcon((new ImageIcon("img/icons/see.png")));
+            jMenuItem2.setIcon((new ImageIcon("img/icons/manual_pay.png")));
+            jMenuItem5.setIcon((new ImageIcon("img/icons/new.png")));
+            mitAluCrear.setIcon((new ImageIcon("img/icons/new.png")));
+            jMenuItem9.setIcon((new ImageIcon("img/icons/see.png")));
 
             f = new FondoSwing("img/textura-principal.jpg");
             f.setBorder(this);
 
+            MiSwing.iconoJFrame(this, "img/icono.png");
+
             MetodosSueltos.rellenarComboAlumno(cmbAlumno);
             this.cuentaActivos();
-            this.buttonGroup1.add(this.rdbTodas);
+            this.buttonGroup1.add(this.rdbEstadoTodas);
             this.buttonGroup1.add(this.rdbPendientes);
             this.buttonGroup1.add(this.rdbRealizadas);
+
+            this.buttonGroup2.add(this.rdbOrigenTodos);
+            this.buttonGroup2.add(this.rdbPresencial);
+            this.buttonGroup2.add(this.rdbClassgap);
+            this.buttonGroup2.add(this.rdbOnline);
 
         } catch (IOException ex) {
             Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
@@ -65,18 +89,18 @@ public class Principal extends javax.swing.JFrame {
 
     private void rellenarClases(String sqlAdicional) {
 
-        String sqlBase = "select id_clase, nombre || ' ' || apellidos as Alumno, "
+        String sqlBase = "select id_clase, a.nombre || ' ' || apellidos as Alumno, "
                 + " ifnull(strftime('%d/%m/%Y', fecha), 'Pendiente de realizar') as 'Fecha clase', "
                 + "hora_inicio as 'H. inicio', "
                 + "hora_fin as 'H. fin', Precio "
-                + "from clases c, alumnos a "
-                + "where c.id_alumno = a.id";
+                + "from clases c, alumnos a, origen o "
+                + "where a.origen = o.id and c.id_alumno = a.id ";
 
-        String sql = sqlBase + sqlAdicional + " order by fecha, hora_inicio,hora_fin ";
+        String sql = sqlBase + sqlAdicional + " order by fecha desc, hora_inicio,hora_fin ";
 
         String sqlGanado = "select sum(p.pagado) "
-                + " from clases c, pagos p, alumnos a "
-                + " where c.id_clase = p.id_clase and a.id = c.id_alumno ";
+                + " from clases c, pagos p, alumnos a , origen o "
+                + " where a.origen = o.id and c.id_clase = p.id_clase and a.id = c.id_alumno ";
 
         sqlGanado = sqlGanado + sqlAdicional;
 
@@ -125,9 +149,23 @@ public class Principal extends javax.swing.JFrame {
             int codigoAlumno = Integer.parseInt(filaCombobox[0]);
             sqlAdicional += " and a.id = " + codigoAlumno;
 
+        } else {
+
+            if (!this.rdbOrigenTodos.isSelected()) {
+
+                if (this.rdbOnline.isSelected()) {
+                    sqlAdicional += " and o.nombre = 'Online'";
+                } else if (this.rdbClassgap.isSelected()) {
+                    sqlAdicional += " and o.nombre = 'Classgap'";
+                } else {
+                    sqlAdicional += " and o.nombre = 'Presencial'";
+                }
+
+            }
+
         }
 
-        if (!this.rdbTodas.isSelected()) {
+        if (!this.rdbEstadoTodas.isSelected()) {
 
             if (this.rdbRealizadas.isSelected()) {
                 sqlAdicional += " and c.fecha is not null";
@@ -196,6 +234,7 @@ public class Principal extends javax.swing.JFrame {
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem6 = new javax.swing.JMenuItem();
         buttonGroup1 = new javax.swing.ButtonGroup();
+        buttonGroup2 = new javax.swing.ButtonGroup();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblClases = new javax.swing.JTable();
         cmbAlumno = new javax.swing.JComboBox<>();
@@ -209,11 +248,17 @@ public class Principal extends javax.swing.JFrame {
         btnLimpiar = new javax.swing.JButton();
         rdbPendientes = new javax.swing.JRadioButton();
         rdbRealizadas = new javax.swing.JRadioButton();
-        rdbTodas = new javax.swing.JRadioButton();
+        rdbEstadoTodas = new javax.swing.JRadioButton();
         txtGanado = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         txtActivos = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
+        rdbPresencial = new javax.swing.JRadioButton();
+        rdbClassgap = new javax.swing.JRadioButton();
+        rdbOrigenTodos = new javax.swing.JRadioButton();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        rdbOnline = new javax.swing.JRadioButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         menuAlu = new javax.swing.JMenu();
         mitAluCrear = new javax.swing.JMenuItem();
@@ -223,6 +268,8 @@ public class Principal extends javax.swing.JFrame {
         jMenu3 = new javax.swing.JMenu();
         jMenuItem8 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
+        jMenu1 = new javax.swing.JMenu();
+        jMenuItem3 = new javax.swing.JMenuItem();
         jMenu4 = new javax.swing.JMenu();
         jMenuItem7 = new javax.swing.JMenuItem();
 
@@ -259,14 +306,19 @@ public class Principal extends javax.swing.JFrame {
         getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 140, 633, 274));
 
         cmbAlumno.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cmbAlumno.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cmbAlumnoItemStateChanged(evt);
+            }
+        });
         cmbAlumno.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cmbAlumnoActionPerformed(evt);
             }
         });
-        getContentPane().add(cmbAlumno, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 50, 220, -1));
-        getContentPane().add(dtpFI, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 100, -1, -1));
-        getContentPane().add(dtpFF, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 100, -1, 20));
+        getContentPane().add(cmbAlumno, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 50, 220, -1));
+        getContentPane().add(dtpFI, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 100, -1, -1));
+        getContentPane().add(dtpFF, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 100, -1, 20));
 
         btnFiltrare.setText("Filtrar");
         btnFiltrare.addActionListener(new java.awt.event.ActionListener() {
@@ -278,30 +330,36 @@ public class Principal extends javax.swing.JFrame {
 
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("Inicio");
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 100, -1, -1));
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 100, -1, -1));
 
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Fin");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 100, -1, -1));
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 100, -1, -1));
 
         jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("Alumno");
-        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 60, -1, -1));
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 50, -1, -1));
 
         jButton2.setText("Dar por pagada");
         getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 110, 110, -1));
 
         btnLimpiar.setText("Limpiar");
+        btnLimpiar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLimpiarActionPerformed(evt);
+            }
+        });
         getContentPane().add(btnLimpiar, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 80, 110, -1));
 
         rdbPendientes.setText("Pendientes");
-        getContentPane().add(rdbPendientes, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 100, -1, -1));
+        getContentPane().add(rdbPendientes, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 110, -1, -1));
 
         rdbRealizadas.setText("Realizadas");
-        getContentPane().add(rdbRealizadas, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 70, -1, -1));
+        getContentPane().add(rdbRealizadas, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 80, -1, -1));
 
-        rdbTodas.setSelected(true);
-        rdbTodas.setText("Todas");
-        getContentPane().add(rdbTodas, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 40, -1, -1));
+        rdbEstadoTodas.setSelected(true);
+        rdbEstadoTodas.setText("Todas");
+        getContentPane().add(rdbEstadoTodas, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 50, -1, -1));
 
         txtGanado.setEditable(false);
         txtGanado.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
@@ -318,6 +376,27 @@ public class Principal extends javax.swing.JFrame {
         jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("Alumnos activos");
         getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 430, 90, 30));
+
+        rdbPresencial.setText("Presencial");
+        getContentPane().add(rdbPresencial, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 110, -1, -1));
+
+        rdbClassgap.setText("Classgap");
+        getContentPane().add(rdbClassgap, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 70, -1, -1));
+
+        rdbOrigenTodos.setSelected(true);
+        rdbOrigenTodos.setText("Todos");
+        getContentPane().add(rdbOrigenTodos, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 50, -1, -1));
+
+        jLabel6.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel6.setText("Estado");
+        getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 30, -1, -1));
+
+        jLabel7.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel7.setText("Origen");
+        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 30, -1, -1));
+
+        rdbOnline.setText("Online");
+        getContentPane().add(rdbOnline, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 90, -1, -1));
 
         menuAlu.setText("Alumno");
 
@@ -370,6 +449,18 @@ public class Principal extends javax.swing.JFrame {
         jMenu3.add(jMenuItem2);
 
         jMenuBar1.add(jMenu3);
+
+        jMenu1.setText("Ayuda");
+
+        jMenuItem3.setText("Acerca de");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem3);
+
+        jMenuBar1.add(jMenu1);
 
         jMenu4.setText("Salir");
 
@@ -454,6 +545,38 @@ public class Principal extends javax.swing.JFrame {
 
     }//GEN-LAST:event_formWindowClosing
 
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        AcercaDeForm ventana = new AcercaDeForm(this, true);
+        ventana.setVisible(true);
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
+
+    private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarActionPerformed
+
+        MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+
+        this.dtpFI.setDate(MetodosSueltos.inicioMes());
+        this.dtpFF.setDate(MetodosSueltos.finMes());
+
+        filtro();
+
+    }//GEN-LAST:event_btnLimpiarActionPerformed
+
+    private void cmbAlumnoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbAlumnoItemStateChanged
+        
+        if(this.cmbAlumno.getSelectedIndex() != 0){
+            this.rdbOrigenTodos.setEnabled(false);
+            this.rdbOnline.setEnabled(false);
+            this.rdbClassgap.setEnabled(false);
+            this.rdbPresencial.setEnabled(false);
+        }else{
+             this.rdbOrigenTodos.setEnabled(true);
+            this.rdbOnline.setEnabled(true);
+            this.rdbClassgap.setEnabled(true);
+            this.rdbPresencial.setEnabled(true);
+        }
+        
+    }//GEN-LAST:event_cmbAlumnoItemStateChanged
+
     /**
      * @param args the command line arguments
      */
@@ -484,7 +607,10 @@ public class Principal extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Principal().setVisible(true);
+                try {
+                    new Principal().setVisible(true);
+                } catch (IOException ex) {
+                }
             }
         });
     }
@@ -493,6 +619,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JButton btnFiltrare;
     private javax.swing.JButton btnLimpiar;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JComboBox<String> cmbAlumno;
     private com.toedter.calendar.JDateChooser dtpFF;
     private com.toedter.calendar.JDateChooser dtpFI;
@@ -502,12 +629,16 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem6;
     private javax.swing.JMenuItem jMenuItem7;
@@ -516,9 +647,13 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JMenu menuAlu;
     private javax.swing.JMenuItem mitAluCrear;
+    private javax.swing.JRadioButton rdbClassgap;
+    private javax.swing.JRadioButton rdbEstadoTodas;
+    private javax.swing.JRadioButton rdbOnline;
+    private javax.swing.JRadioButton rdbOrigenTodos;
     private javax.swing.JRadioButton rdbPendientes;
+    private javax.swing.JRadioButton rdbPresencial;
     private javax.swing.JRadioButton rdbRealizadas;
-    private javax.swing.JRadioButton rdbTodas;
     private javax.swing.JTable tblClases;
     private javax.swing.JTextField txtActivos;
     private javax.swing.JTextField txtGanado;

@@ -5,6 +5,7 @@
  */
 package formularios;
 
+import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import java.sql.ResultSet;
@@ -12,6 +13,9 @@ import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
 import es.discoduroderoer.swing.MiSwing;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -33,6 +37,14 @@ public class AlumnoForm extends javax.swing.JDialog {
         this.idModificar = -1;
         inicializar();
         this.setLocationRelativeTo(null);
+
+        FondoSwing f;
+        try {
+            f = new FondoSwing("img/textura-alumno.jpg");
+            f.setBorder(this);
+        } catch (IOException ex) {
+            Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
     }
 
@@ -131,12 +143,16 @@ public class AlumnoForm extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Crear alumno");
 
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("Nombre:");
 
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Email:");
 
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("Telefono:");
 
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
         jLabel4.setText("Origen:");
 
         rdbActSi.setSelected(true);
@@ -144,6 +160,7 @@ public class AlumnoForm extends javax.swing.JDialog {
 
         rdbActNo.setText("No");
 
+        jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("Activado");
 
         btnGuardar.setText("Guardar");
@@ -171,12 +188,15 @@ public class AlumnoForm extends javax.swing.JDialog {
 
         txtPrecioBase.setText("8");
 
+        jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Precio base:");
 
         txtPrecioDomicilio.setText("10");
 
+        jLabel7.setForeground(new java.awt.Color(255, 255, 255));
         jLabel7.setText("Precio domicilio");
 
+        jLabel8.setForeground(new java.awt.Color(255, 255, 255));
         jLabel8.setText("Apellidos:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

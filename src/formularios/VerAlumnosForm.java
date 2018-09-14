@@ -5,11 +5,15 @@
  */
 package formularios;
 
+import clases.FondoSwing;
 import clases.VariablesGlobales;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import es.discoduroderoer.swing.MiSwing;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -38,6 +42,14 @@ public class VerAlumnosForm extends javax.swing.JDialog {
         rellenarAlumnos();
 
         this.setLocationRelativeTo(parent);
+        
+         try {
+            FondoSwing f = new FondoSwing("img/classroom_student.jpg");
+            f.setBorder(this);
+        } catch (IOException ex) {
+            Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
 
     }
 

@@ -5,19 +5,20 @@
  */
 package formularios;
 
+import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
 import es.discoduroderoer.swing.MiSwing;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author Fernando
- */
 public class PagosManualesForm extends javax.swing.JDialog {
 
     /**
@@ -33,6 +34,14 @@ public class PagosManualesForm extends javax.swing.JDialog {
 
         MetodosSueltos.rellenarComboAlumno(cmbAlumno);
         this.setLocationRelativeTo(parent);
+
+        this.dtpFechaPago.setDate(new Date());
+        try {
+            FondoSwing f = new FondoSwing("img/pagos_manuales.jpg");
+            f.setBorder(this);
+        } catch (IOException ex) {
+            Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
     }
 
@@ -58,17 +67,12 @@ public class PagosManualesForm extends javax.swing.JDialog {
             pago = Double.parseDouble(precioText);
         }
 
-        /*System.out.println(this.dtpFechaPago.isValid());
-        System.out.println(this.dtpFechaPago.getDate());
-        if (!this.dtpFechaPago.isValid()) {
+        if (this.dtpFechaPago.getDate() == null) {
             errores += "- La fecha no es válida \n";
         } else {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
-        }*/
-        //SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
-        formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
+        }
 
         if (errores.equals("")) {
 
@@ -198,6 +202,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
         txtPrecioPresencial = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Pagos manuales");
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         btnGuardar.setText("Guardar");
@@ -231,12 +236,15 @@ public class PagosManualesForm extends javax.swing.JDialog {
         });
         getContentPane().add(txtPago, new org.netbeans.lib.awtextra.AbsoluteConstraints(89, 139, 174, -1));
 
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("Alumno");
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(28, 30, -1, -1));
 
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Fecha");
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(28, 84, -1, -1));
 
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("Pago");
         getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(28, 142, -1, -1));
 
@@ -279,6 +287,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
         });
         getContentPane().add(txtEspecificarPrecio, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 270, 50, 20));
 
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
         jLabel4.setText("Precio por clase");
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 190, -1, -1));
 
@@ -314,9 +323,10 @@ public class PagosManualesForm extends javax.swing.JDialog {
     }//GEN-LAST:event_btnGuardarActionPerformed
 
     private void btnguardarNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnguardarNuevoActionPerformed
-        //this.actualizarPagos();
+        if (this.actualizarPagos()) {
+            MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+        }
 
-        MiSwing.limpiarFormulario(this.getContentPane().getComponents());
 
     }//GEN-LAST:event_btnguardarNuevoActionPerformed
 

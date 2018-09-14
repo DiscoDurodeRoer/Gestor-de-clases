@@ -5,6 +5,7 @@
  */
 package formularios;
 
+import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import java.sql.SQLException;
@@ -14,6 +15,9 @@ import javax.swing.JOptionPane;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
 import es.discoduroderoer.fechas.Horas;
 import es.discoduroderoer.swing.MiSwing;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -39,6 +43,13 @@ public class ClasesForm extends javax.swing.JDialog {
         MetodosSueltos.rellenarComboAlumno(cmbAlumno);
 
         this.dtpFecha.setDate(new Date());
+
+        try {
+            FondoSwing f = new FondoSwing("img/classroom.jpg");
+            f.setBorder(this);
+        } catch (IOException ex) {
+            Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
     }
 
@@ -96,15 +107,12 @@ public class ClasesForm extends javax.swing.JDialog {
             codigoAlumno = Integer.parseInt(filaCombobox[0]);
         }
 
-        /* if (!this.dtpFecha.isValid()) {
+        if (this.dtpFecha.getDate() == null) {
             errores += "- La fecha no es válida \n";
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
             formatoFechaClase = sdf.format(this.dtpFecha.getDate());
         }
-         */
-        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
-        formatoFechaClase = sdf.format(this.dtpFecha.getDate());
 
         if (this.cmbHoraInicio.getSelectedIndex() > this.cmbHoraFin.getSelectedIndex()) {
             errores += "- Las horas no estan correctas \n";
@@ -213,6 +221,7 @@ public class ClasesForm extends javax.swing.JDialog {
         setResizable(false);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("Alumno");
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 50, -1, -1));
 
@@ -275,6 +284,7 @@ public class ClasesForm extends javax.swing.JDialog {
         });
         getContentPane().add(txtEspecificarPrecio, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 270, 50, 20));
 
+        jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("Hora fin");
         getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(266, 143, -1, -1));
 
@@ -294,13 +304,16 @@ public class ClasesForm extends javax.swing.JDialog {
         });
         getContentPane().add(btnSalir, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 360, 83, -1));
 
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Fecha");
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 100, -1, -1));
 
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("Hora inicio");
         getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 143, -1, -1));
         getContentPane().add(dtpFecha, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 100, 112, -1));
 
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
         jLabel4.setText("Precio");
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 196, -1, -1));
 
@@ -332,6 +345,7 @@ public class ClasesForm extends javax.swing.JDialog {
         });
         getContentPane().add(txtPrecioFinal, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 230, 115, 20));
 
+        jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Precio final");
         getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 190, 110, 20));
 
