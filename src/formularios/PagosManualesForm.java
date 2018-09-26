@@ -70,7 +70,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
         if (this.dtpFechaPago.getDate() == null) {
             errores += "- La fecha no es válida \n";
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
             formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
         }
 
