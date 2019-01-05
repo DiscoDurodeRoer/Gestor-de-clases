@@ -5,6 +5,7 @@
  */
 package formularios;
 
+import clases.Constantes;
 import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
@@ -70,7 +71,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
         if (this.dtpFechaPago.getDate() == null) {
             errores += "- La fecha no es válida \n";
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
+            SimpleDateFormat sdf = new SimpleDateFormat(Constantes.FF_YYYY_MM_dd);
             formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
         }
 

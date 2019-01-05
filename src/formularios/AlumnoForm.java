@@ -5,6 +5,8 @@
  */
 package formularios;
 
+import clases.Constantes;
+import clases.ConsultasSQL;
 import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
@@ -34,7 +36,7 @@ public class AlumnoForm extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         this.parent = parent;
-        this.idModificar = -1;
+        this.idModificar = Constantes.ANIADIR;
         inicializar();
         this.setLocationRelativeTo(null);
 
@@ -110,7 +112,7 @@ public class AlumnoForm extends javax.swing.JDialog {
     }
 
     public boolean estaModificando() {
-        return this.idModificar != -1;
+        return this.idModificar != Constantes.ANIADIR;
     }
 
     @SuppressWarnings("unchecked")
@@ -367,7 +369,7 @@ public class AlumnoForm extends javax.swing.JDialog {
         String[] origen = (String[]) (this.cmbOrigen.getSelectedItem());
         int idOrigen = Integer.parseInt(origen[0]);
 
-        if (idOrigen == -1) {
+        if (idOrigen == Constantes.CMB_NO_SELECCIONADO) {
             errores += "- Debes seleccionar un origen\n";
         }
 
@@ -389,6 +391,7 @@ public class AlumnoForm extends javax.swing.JDialog {
                         + "precio_domicilio = " + precioDomicilio + ", "
                         + "activado = " + activo + " where id= " + this.idModificar;
             } else {
+                //sql = ConsultasSQL.ANIADIR_ALUMNO;
                 sql = "insert into Alumnos(Nombre, apellidos, email, telefono, "
                         + "origen,precio_base,precio_domicilio, activado) values "
                         + "('" + nombre + "', '" + apellidos + "', '" + email + "', '" + telefono + "', "

@@ -5,6 +5,7 @@
  */
 package formularios;
 
+import clases.Constantes;
 import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
@@ -16,18 +17,15 @@ import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
 import es.discoduroderoer.fechas.Horas;
 import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Fernando
- */
 public class ClasesForm extends javax.swing.JDialog {
 
-    /**
-     * Creates new form ClasesForm1
-     */
+    private int idClase;
+
     public ClasesForm(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
@@ -44,11 +42,83 @@ public class ClasesForm extends javax.swing.JDialog {
 
         this.dtpFecha.setDate(new Date());
 
+        this.idClase = -1;
+
         try {
             FondoSwing f = new FondoSwing("img/classroom.jpg");
             f.setBorder(this);
         } catch (IOException ex) {
             Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    /**
+     * Creates new form ClasesForm1
+     */
+    public ClasesForm(java.awt.Frame parent, boolean modal, int idClase) {
+        super(parent, modal);
+        initComponents();
+        this.buttonGroup1.add(this.rdbPresencial);
+        this.buttonGroup1.add(this.rdbDomicilio);
+        this.buttonGroup1.add(this.rdbEspecificar);
+
+        this.buttonGroup2.add(this.rdbPagado);
+        this.buttonGroup2.add(this.rdbNoPagado);
+
+        this.setLocationRelativeTo(null);
+
+        MetodosSueltos.rellenarComboAlumno(cmbAlumno);
+
+        this.dtpFecha.setDate(new Date());
+        this.idClase = idClase;
+        rellenarDatos();
+
+        try {
+            FondoSwing f = new FondoSwing("img/classroom.jpg");
+            f.setBorder(this);
+        } catch (IOException ex) {
+            Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    private void rellenarDatos() {
+
+        String sql = "select * from clases where id_clase = " + idClase;
+
+        try {
+            VariablesGlobales.conexion.ejecutarConsulta(sql);
+            ResultSet rs = VariablesGlobales.conexion.getResultSet();
+
+            int idAlumno;
+            String fecha = null, hi, hf;
+            double precio;
+
+            if (rs.next()) {
+
+                idAlumno = rs.getInt("id_alumno");
+                fecha = rs.getString("fecha");
+                hi = rs.getString("hora_inicio");
+                hf = rs.getString("hora_fin");
+                precio = rs.getDouble("precio");
+
+                Date fechaClase = new SimpleDateFormat(Constantes.FF_yyyy_mm_dd).parse(fecha);
+                this.dtpFecha.setDate(fechaClase);
+
+                this.cmbHoraInicio.setSelectedItem(hi);
+                this.cmbHoraFin.setSelectedItem(hf);
+
+                MiSwing.asignarItemCmb2Columnas(this.cmbAlumno, idAlumno);
+
+                this.rdbEspecificar.setSelected(true);
+                this.txtEspecificarPrecio.setText(precio + "");
+
+                this.calcularPrecioFinal();
+            }
+
+        } catch (SQLException | ParseException ex) {
+            Logger.getLogger(ClasesForm.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -68,21 +138,23 @@ public class ClasesForm extends javax.swing.JDialog {
             double precio = 0;
             if (this.rdbPresencial.isSelected()) {
                 precio = Double.parseDouble(this.txtPrecioPresencial.getText());
+                precioFinal = precio * horasRealizadas;
             } else if (this.rdbDomicilio.isSelected()) {
                 precio = Double.parseDouble(this.txtPrecioDomicilio.getText());
+                precioFinal = precio * horasRealizadas;
             } else {
                 String precioEspecial = this.txtEspecificarPrecio.getText();
 
-                if (precioEspecial.equals("")
+                if (precioEspecial.isEmpty()
                         || !ExpresionesRegulares.validaNumeroRealPositivo_Exp(precioEspecial, 2)) {
                     precio = 0;
                 } else {
                     precio = Double.parseDouble(this.txtEspecificarPrecio.getText());
                 }
 
-            }
+                precioFinal = precio;
 
-            precioFinal = precio * horasRealizadas;
+            }
 
         }
 
@@ -110,7 +182,7 @@ public class ClasesForm extends javax.swing.JDialog {
         if (this.dtpFecha.getDate() == null) {
             errores += "- La fecha no es válida \n";
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
+            SimpleDateFormat sdf = new SimpleDateFormat(Constantes.FF_YYYY_MM_dd);
             formatoFechaClase = sdf.format(this.dtpFecha.getDate());
         }
 
@@ -125,51 +197,80 @@ public class ClasesForm extends javax.swing.JDialog {
             errores += "- El precio final no puede ser 0. \n";
         }
 
-        if (errores.equals("")) {
+        if (errores.isEmpty()) {
 
-            try {
+            if (idClase == Constantes.ANIADIR) {
 
-                String sql = "insert into clases "
-                        + "(fecha, hora_inicio, hora_fin, "
-                        + "id_alumno, precio) values "
-                        + "('" + formatoFechaClase + "', '" + horaInicio + "',"
-                        + "'" + horaFin + "', " + codigoAlumno + ", " + precioFinal + ")";
+                try {
 
-                VariablesGlobales.conexion.ejecutarInstruccion(sql);
+                    String sql = "insert into clases "
+                            + "(fecha, hora_inicio, hora_fin, "
+                            + "id_alumno, precio) values "
+                            + "('" + formatoFechaClase + "', '" + horaInicio + "',"
+                            + "'" + horaFin + "', " + codigoAlumno + ", " + precioFinal + ")";
 
-                int idClase = VariablesGlobales.conexion.ultimoID("id_clase", "clases");
+                    VariablesGlobales.conexion.ejecutarInstruccion(sql);
 
-                double pagado = 0;
-                if (this.rdbPagado.isSelected()) {
-                    pagado = precioFinal;
-                    sql = "insert into pagos "
-                            + "(fecha, id_clase, pagado) values "
-                            + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";
-                } else {
+                    int idClase = VariablesGlobales.conexion.ultimoID("id_clase", "clases");
 
-                    formatoFechaClase = null;
-                    sql = "insert into pagos "
-                            + "(id_clase, pagado) values "
-                            + "(" + idClase + ", " + pagado + ")";
+                    double pagado = 0;
+                    if (this.rdbPagado.isSelected()) {
+                        pagado = precioFinal;
+                        sql = "insert into pagos "
+                                + "(fecha, id_clase, pagado) values "
+                                + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";
+                    } else {
+
+                        formatoFechaClase = null;
+                        sql = "insert into pagos "
+                                + "(id_clase, pagado) values "
+                                + "(" + idClase + ", " + pagado + ")";
+                    }
+
+                    VariablesGlobales.conexion.ejecutarInstruccion(sql);
+
+                    JOptionPane.showMessageDialog(this,
+                            "Se ha insertado correctamente",
+                            "Éxito",
+                            JOptionPane.INFORMATION_MESSAGE);
+
+                    return true;
+
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "No se ha insertado correctamente:" + ex.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+
+                try {
+                    String sql = "update clases "
+                            + "set fecha= '" + formatoFechaClase + "'"
+                            + ", hora_inicio = '" + horaInicio + "'"
+                            + ", hora_fin = '" + horaFin + "'"
+                            + ", id_alumno = " + codigoAlumno
+                            + ", precio = " + precioFinal + " "
+                            + "where id_clase = " + this.idClase;
+
+                    VariablesGlobales.conexion.ejecutarInstruccion(sql);
+
+                    // De momento, no se edita el pago
+                    
+                    JOptionPane.showMessageDialog(this,
+                            "Se ha actualizado correctamente",
+                            "Éxito",
+                            JOptionPane.INFORMATION_MESSAGE);
+
+                    return true;
+
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "No se ha insertado correctamente:" + ex.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
 
-                /*sql = "insert into pagos "
-                        + "(fecha, id_clase, pagado) values "
-                        + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";*/
-                VariablesGlobales.conexion.ejecutarInstruccion(sql);
-
-                JOptionPane.showMessageDialog(this,
-                        "Se ha insertado correctamente",
-                        "Éxito",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                return true;
-
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "No se ha insertado correctamente:" + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
             }
 
         } else {
@@ -272,14 +373,8 @@ public class ClasesForm extends javax.swing.JDialog {
 
         txtEspecificarPrecio.setEditable(false);
         txtEspecificarPrecio.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                txtEspecificarPrecioKeyPressed(evt);
-            }
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 txtEspecificarPrecioKeyReleased(evt);
-            }
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                txtEspecificarPrecioKeyTyped(evt);
             }
         });
         getContentPane().add(txtEspecificarPrecio, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 270, 50, 20));
@@ -350,11 +445,6 @@ public class ClasesForm extends javax.swing.JDialog {
         getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 190, 110, 20));
 
         txtPrecioDomicilio.setEditable(false);
-        txtPrecioDomicilio.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtPrecioDomicilioActionPerformed(evt);
-            }
-        });
         getContentPane().add(txtPrecioDomicilio, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 230, 50, 20));
 
         txtPrecioPresencial.setEditable(false);
@@ -365,11 +455,6 @@ public class ClasesForm extends javax.swing.JDialog {
         getContentPane().add(rdbNoPagado, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 310, -1, -1));
 
         rdbPagado.setText("Pagado");
-        rdbPagado.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rdbPagadoActionPerformed(evt);
-            }
-        });
         getContentPane().add(rdbPagado, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 310, -1, -1));
 
         pack();
@@ -396,6 +481,7 @@ public class ClasesForm extends javax.swing.JDialog {
     }//GEN-LAST:event_txtPrecioFinalActionPerformed
 
     private void rdbDomicilioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbDomicilioActionPerformed
+        this.txtEspecificarPrecio.setEditable(false);
         this.calcularPrecioFinal();
     }//GEN-LAST:event_rdbDomicilioActionPerformed
 
@@ -452,22 +538,6 @@ public class ClasesForm extends javax.swing.JDialog {
     private void txtEspecificarPrecioKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtEspecificarPrecioKeyReleased
         this.calcularPrecioFinal();
     }//GEN-LAST:event_txtEspecificarPrecioKeyReleased
-
-    private void txtPrecioDomicilioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPrecioDomicilioActionPerformed
-        this.calcularPrecioFinal();
-    }//GEN-LAST:event_txtPrecioDomicilioActionPerformed
-
-    private void txtEspecificarPrecioKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtEspecificarPrecioKeyPressed
-
-    }//GEN-LAST:event_txtEspecificarPrecioKeyPressed
-
-    private void txtEspecificarPrecioKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtEspecificarPrecioKeyTyped
-
-    }//GEN-LAST:event_txtEspecificarPrecioKeyTyped
-
-    private void rdbPagadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rdbPagadoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_rdbPagadoActionPerformed
 
     private void btnGuardarNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarNuevoActionPerformed
 

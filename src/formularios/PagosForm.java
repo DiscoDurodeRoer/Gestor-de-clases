@@ -5,6 +5,7 @@
  */
 package formularios;
 
+import clases.Constantes;
 import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.RendererPagos;
@@ -88,7 +89,7 @@ public class PagosForm extends javax.swing.JDialog {
 
     public void filtro() {
         String sqlAdicional = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
+        SimpleDateFormat sdf = new SimpleDateFormat(Constantes.FF_YYYY_MM_dd);
         String formatoFechaClase;
 
         boolean noPagadoAct = false, inicioAct = false;

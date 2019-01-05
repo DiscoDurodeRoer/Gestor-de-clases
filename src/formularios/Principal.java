@@ -5,6 +5,7 @@
  */
 package formularios;
 
+import clases.Constantes;
 import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.RendererClases;
@@ -131,7 +132,7 @@ public class Principal extends javax.swing.JFrame {
 
     private void filtro() {
         String sqlAdicional = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
+        SimpleDateFormat sdf = new SimpleDateFormat(Constantes.FF_YYYY_MM_dd);
         String formatoFechaClase;
 
         String parentesisApertura = "";
@@ -265,6 +266,7 @@ public class Principal extends javax.swing.JFrame {
         jMenuItem9 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItem5 = new javax.swing.JMenuItem();
+        jMenuItem4 = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         jMenuItem8 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
@@ -428,6 +430,14 @@ public class Principal extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItem5);
 
+        jMenuItem4.setText("Editar...");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem4);
+
         jMenuBar1.add(jMenu2);
 
         jMenu3.setText("Pagos");
@@ -562,20 +572,44 @@ public class Principal extends javax.swing.JFrame {
     }//GEN-LAST:event_btnLimpiarActionPerformed
 
     private void cmbAlumnoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbAlumnoItemStateChanged
-        
-        if(this.cmbAlumno.getSelectedIndex() != 0){
+
+        if (this.cmbAlumno.getSelectedIndex() != 0) {
             this.rdbOrigenTodos.setEnabled(false);
             this.rdbOnline.setEnabled(false);
             this.rdbClassgap.setEnabled(false);
             this.rdbPresencial.setEnabled(false);
-        }else{
-             this.rdbOrigenTodos.setEnabled(true);
+        } else {
+            this.rdbOrigenTodos.setEnabled(true);
             this.rdbOnline.setEnabled(true);
             this.rdbClassgap.setEnabled(true);
             this.rdbPresencial.setEnabled(true);
         }
-        
+
     }//GEN-LAST:event_cmbAlumnoItemStateChanged
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+
+        if (this.tblClases.getSelectedRow() != -1) {
+
+            int fila = this.tblClases.getSelectedRow();
+
+            int idClase = (int) this.tblClases.getValueAt(fila, 0);
+
+            ClasesForm ventana = new ClasesForm(this, true, idClase);
+            ventana.setVisible(true);
+
+            filtro();
+        } else {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No has seleccionado una fila",
+                    "Errores",
+                    JOptionPane.ERROR_MESSAGE
+            );
+
+        }
+
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -639,6 +673,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem6;
     private javax.swing.JMenuItem jMenuItem7;
