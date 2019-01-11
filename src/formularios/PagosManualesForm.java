@@ -166,14 +166,14 @@ public class PagosManualesForm extends javax.swing.JDialog {
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this,
                         ex.getMessage(),
-                        "Error",
+                        Constantes.MSG_ERROR,
                         JOptionPane.ERROR_MESSAGE);
                 return false;
             }
         } else {
             JOptionPane.showMessageDialog(this,
                     errores,
-                    "Error",
+                    Constantes.MSG_ERROR,
                     JOptionPane.ERROR_MESSAGE);
             return false;
         }

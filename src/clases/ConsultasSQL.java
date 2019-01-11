@@ -3,6 +3,15 @@ package clases;
 public class ConsultasSQL {
 
     // ALUMNOS 
+    public static String VER_ALUMNOS = "select a.id, "
+            + "a.Nombre || ' ' || a.apellidos as Alumno, "
+            + "a.email as Email,"
+            + "a.telefono as Telefono,"
+            + "o.nombre as Origen "
+            + "from Alumnos a, Origen o "
+            + "where a.origen = o.id and a.activado = ? "
+            + "order by Alumno";
+
     public static String ANIADIR_ALUMNO = "insert into Alumnos"
             + "(Nombre, apellidos, email, telefono, "
             + "origen,precio_base,precio_domicilio, activado) values "
@@ -16,6 +25,10 @@ public class ConsultasSQL {
             + "precio_base = ?, "
             + "precio_domicilio = ?, "
             + "activado = ? where id= ?";
+
+    public static String MODIFICAR_ALUMNO_ACTIVO = "update alumnos "
+            + "set activado = ? "
+            + "where id = ?";
 
     public static String NUM_ALUMNOS_MISMO_TEL = "select count(*) "
             + "from alumnos "
@@ -35,6 +48,9 @@ public class ConsultasSQL {
             + "where email=? and "
             + "email<>?";
 
+    public static String ALUMNOS_ORIGEN = "select id, nombre from Origen";
+
+    public static String DATOS_ALUMNO_ID = "select * from alumnos where id= ?";
     // CLASES
     public static String ANIADIR_CLASE = "insert into clases "
             + "(fecha, hora_inicio, hora_fin, id_alumno, precio) values "

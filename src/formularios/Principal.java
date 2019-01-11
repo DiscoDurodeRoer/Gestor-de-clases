@@ -215,7 +215,7 @@ public class Principal extends javax.swing.JFrame {
     private void salirApp() {
         int eleccion = JOptionPane.showConfirmDialog(this,
                 "¿Estas seguro de cerrar el programa?",
-                "Confirmar",
+                Constantes.MSG_CONFIRMAR,
                 JOptionPane.YES_NO_OPTION);
 
         if (eleccion == JOptionPane.YES_OPTION) {
@@ -602,8 +602,8 @@ public class Principal extends javax.swing.JFrame {
         } else {
             JOptionPane.showMessageDialog(
                     this,
-                    "No has seleccionado una fila",
-                    "Errores",
+                    Constantes.MSG_NO_FILA_SELECCIONADA,
+                    Constantes.MSG_ERROR,
                     JOptionPane.ERROR_MESSAGE
             );
 

@@ -42,7 +42,7 @@ public class AlumnoForm extends javax.swing.JDialog {
 
         FondoSwing f;
         try {
-            f = new FondoSwing("img/textura-alumno.jpg");
+            f = new FondoSwing(Constantes.BG_CREAR_ALUMNOS);
             f.setBorder(this);
         } catch (IOException ex) {
             Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -65,11 +65,8 @@ public class AlumnoForm extends javax.swing.JDialog {
         buttonGroup1.add(rdbActSi);
         buttonGroup1.add(rdbActNo);
 
-        String sql = "select id, nombre "
-                + "from Origen";
-
         VariablesGlobales.conexion.rellenaComboBox2Columnas(this.cmbOrigen,
-                sql,
+                ConsultasSQL.ALUMNOS_ORIGEN,
                 "--Selecciona un origen",
                 "id",
                 "nombre");
@@ -79,10 +76,10 @@ public class AlumnoForm extends javax.swing.JDialog {
         this.getRootPane().setDefaultButton(this.btnGuardar);
 
         if (estaModificando()) {
-            sql = "select * from alumnos where id=" + this.idModificar;
-
+            this.setTitle("Modificar alumno");
+            Object[] valores = {this.idModificar};
             try {
-                VariablesGlobales.conexion.ejecutarConsulta(sql);
+                VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.DATOS_ALUMNO_ID, valores);
 
                 ResultSet rs = VariablesGlobales.conexion.getResultSet();
 
@@ -302,7 +299,7 @@ public class AlumnoForm extends javax.swing.JDialog {
 
         String errores = "";
         String sql = "";
-
+        Object[] valores;
         String nombre = this.txtNombre.getText();
 
         if (nombre.equals("")) {
@@ -322,14 +319,16 @@ public class AlumnoForm extends javax.swing.JDialog {
         }
 
         if (!estaModificando()) {
-            sql = "select count(*) "
-                    + "from alumnos "
-                    + "where telefono = '" + telefono + "'";
+            sql = ConsultasSQL.NUM_ALUMNOS_MISMO_TEL;
+            valores = new Object[1];
+            valores[0] = telefono;
+
         } else {
-            sql = "select count(*) "
-                    + "from alumnos "
-                    + "where telefono = '" + telefono + "' and "
-                    + "telefono<>'" + telefonoOriginal + "'";
+            sql = ConsultasSQL.NUM_ALUMNOS_MISMO_TEL_MOD;
+            valores = new Object[2];
+            valores[0] = telefono;
+            valores[1] = telefonoOriginal;
+
         }
 
         if (!VariablesGlobales.conexion.consultaVacia(sql)) {
@@ -337,14 +336,14 @@ public class AlumnoForm extends javax.swing.JDialog {
         }
 
         if (!estaModificando()) {
-            sql = "select count(*) "
-                    + "from alumnos "
-                    + "where email='" + email + "'";
+            sql = ConsultasSQL.NUM_ALUMNOS_MISMO_EMAIL;
+            valores = new Object[1];
+            valores[0] = email;
         } else {
-            sql = "select count(*) "
-                    + "from alumnos "
-                    + "where email='" + email + "' and "
-                    + "email<>'" + emailOriginal + "'";
+            sql = ConsultasSQL.NUM_ALUMNOS_MISMO_EMAIL_MOD;
+            valores = new Object[2];
+            valores[0] = email;
+            valores[1] = emailOriginal;
         }
 
         if (!VariablesGlobales.conexion.consultaVacia(sql)) {
@@ -382,36 +381,48 @@ public class AlumnoForm extends javax.swing.JDialog {
         if (errores.equals("")) {
 
             if (estaModificando()) {
-                sql = "update Alumnos set Nombre='" + nombre + "', "
-                        + "apellidos = '" + apellidos + "', "
-                        + "email = '" + email + "', "
-                        + "telefono = '" + telefono + "', "
-                        + "origen=" + idOrigen + ", "
-                        + "precio_base = " + precioBase + ", "
-                        + "precio_domicilio = " + precioDomicilio + ", "
-                        + "activado = " + activo + " where id= " + this.idModificar;
+                sql = ConsultasSQL.MODIFICAR_ALUMNO;
+                Object[] valoresUpdate = {
+                    nombre,
+                    apellidos,
+                    email,
+                    telefono,
+                    idOrigen,
+                    precioBase,
+                    precioDomicilio,
+                    activo,
+                    this.idModificar
+                };
+                valores = valoresUpdate;
             } else {
-                //sql = ConsultasSQL.ANIADIR_ALUMNO;
-                sql = "insert into Alumnos(Nombre, apellidos, email, telefono, "
-                        + "origen,precio_base,precio_domicilio, activado) values "
-                        + "('" + nombre + "', '" + apellidos + "', '" + email + "', '" + telefono + "', "
-                        + idOrigen + ", " + precioBase + ", " + precioDomicilio + ",  "
-                        + activo + ");";
+                sql = ConsultasSQL.ANIADIR_ALUMNO;
+                Object[] valoresInsert = {
+                    nombre,
+                    apellidos,
+                    email,
+                    telefono,
+                    idOrigen,
+                    precioBase,
+                    precioDomicilio,
+                    activo
+                };
+                valores = valoresInsert;
             }
 
             try {
-                VariablesGlobales.conexion.ejecutarInstruccion(sql);
+
+                VariablesGlobales.conexion.ejecutarInstruccionPreparada(sql, valores);
 
                 if (estaModificando()) {
                     JOptionPane.showMessageDialog(this,
-                            "Se ha modificado el alumno con exito",
-                            "Éxito",
+                            Constantes.MSG_EXITO_MODIFICAR_ALUMNO,
+                            Constantes.MSG_EXITO,
                             JOptionPane.INFORMATION_MESSAGE);
 
                 } else {
                     JOptionPane.showMessageDialog(this,
-                            "Se ha creado el alumno con exito",
-                            "Éxito",
+                            Constantes.MSG_EXITO_ANIADIR_ALUMNO,
+                            Constantes.MSG_EXITO,
                             JOptionPane.INFORMATION_MESSAGE);
                 }
 
@@ -423,7 +434,9 @@ public class AlumnoForm extends javax.swing.JDialog {
 
         } else {
 
-            JOptionPane.showMessageDialog(this, errores, "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, errores,
+                    Constantes.MSG_ERROR,
+                    JOptionPane.ERROR_MESSAGE);
             return false;
         }
 

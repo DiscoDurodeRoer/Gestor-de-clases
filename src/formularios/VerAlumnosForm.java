@@ -5,7 +5,10 @@
  */
 package formularios;
 
+import clases.Constantes;
+import clases.ConsultasSQL;
 import clases.FondoSwing;
+import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
@@ -15,24 +18,10 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Fernando
- */
 public class VerAlumnosForm extends javax.swing.JDialog {
 
     private DefaultTableModel modeloTabla;
     private java.awt.Frame parent;
-
-    private final String SQL_VER_ALUMNOS = "select a.id, "
-            + "a.Nombre || ' ' || a.apellidos as Alumno, "
-            + "a.email as Email,"
-            + "a.telefono as Telefono,"
-            + "o.nombre as Origen "
-            + "from Alumnos a, Origen o "
-            + "where a.origen = o.id and a.activado = ";
-
-    private final String ORDERBY_VER_ALUMNOS = " order by Alumno";
 
     public VerAlumnosForm(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -42,36 +31,29 @@ public class VerAlumnosForm extends javax.swing.JDialog {
         rellenarAlumnos();
 
         this.setLocationRelativeTo(parent);
-        
-         try {
-            FondoSwing f = new FondoSwing("img/classroom_student.jpg");
+
+        try {
+            FondoSwing f = new FondoSwing(Constantes.BG_ALUMNOS);
             f.setBorder(this);
         } catch (IOException ex) {
             Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-
     }
 
     private void rellenarAlumnos() {
-        String sql;
+
+        int activo = 0;
         if (chkActivo.isSelected()) {
-            sql = SQL_VER_ALUMNOS + "1";
-        } else {
-            sql = SQL_VER_ALUMNOS + "0";
+            activo = 1;
         }
 
-        sql += ORDERBY_VER_ALUMNOS;
-        modeloTabla = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
+        modeloTabla = MetodosSueltos.crearTableModelNoEditable();
         this.tblAlumnos.setModel(modeloTabla);
 
         try {
-            VariablesGlobales.conexion.ejecutarConsulta(sql);
+            Object[] valores = {activo};
+            VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.VER_ALUMNOS, valores);
             VariablesGlobales.conexion.rellenaJTableBD(modeloTabla);
             MiSwing.ocultarColumnaJTable(tblAlumnos, 0);
         } catch (SQLException ex) {
@@ -201,12 +183,12 @@ public class VerAlumnosForm extends javax.swing.JDialog {
                 if (activo == 1) {
                     eleccion = JOptionPane.showConfirmDialog(this,
                             "¿Estas seguro de activar este alumno?",
-                            "Confirmar",
+                            Constantes.MSG_CONFIRMAR,
                             JOptionPane.YES_NO_OPTION);
                 } else {
                     eleccion = JOptionPane.showConfirmDialog(this,
                             "¿Estas seguro de desactivar este alumno?",
-                            "Confirmar",
+                            Constantes.MSG_CONFIRMAR,
                             JOptionPane.YES_NO_OPTION);
                 }
 
@@ -216,21 +198,20 @@ public class VerAlumnosForm extends javax.swing.JDialog {
                     int idAlumno = (Integer) this.tblAlumnos.getValueAt(filaSeleccionada, 0);
 
                     try {
-                        String sql = "update alumnos "
-                                + "set activado = " + activo + " "
-                                + "where id = " + idAlumno;
+                        String sql = ConsultasSQL.MODIFICAR_ALUMNO_ACTIVO;
+                        Object[] valores = {activo, idAlumno};
 
-                        VariablesGlobales.conexion.ejecutarInstruccion(sql);
+                        VariablesGlobales.conexion.ejecutarInstruccionPreparada(sql, valores);
 
                         if (activo == 0) {
                             JOptionPane.showMessageDialog(this,
                                     "Se ha desactivado el alumno",
-                                    "Éxito",
+                                    Constantes.MSG_EXITO,
                                     JOptionPane.INFORMATION_MESSAGE);
                         } else {
                             JOptionPane.showMessageDialog(this,
                                     "Se ha activado el alumno",
-                                    "Éxito",
+                                    Constantes.MSG_EXITO,
                                     JOptionPane.INFORMATION_MESSAGE);
                         }
                         rellenarAlumnos();
@@ -241,14 +222,14 @@ public class VerAlumnosForm extends javax.swing.JDialog {
 
             } else {
                 JOptionPane.showMessageDialog(this,
-                        "No has seleccionado la fila",
-                        "Error",
+                       Constantes.MSG_NO_FILA_SELECCIONADA,
+                        Constantes.MSG_ERROR,
                         JOptionPane.ERROR_MESSAGE);
             }
         } else {
             JOptionPane.showMessageDialog(this,
-                    "No hay filas",
-                    "Error",
+                    Constantes.MSG_NO_FILAS,
+                    Constantes.MSG_ERROR,
                     JOptionPane.ERROR_MESSAGE);
         }
 
@@ -273,14 +254,14 @@ public class VerAlumnosForm extends javax.swing.JDialog {
 
             } else {
                 JOptionPane.showMessageDialog(this,
-                        "No has seleccionado la fila",
-                        "Error",
+                        Constantes.MSG_NO_FILA_SELECCIONADA,
+                        Constantes.MSG_ERROR,
                         JOptionPane.ERROR_MESSAGE);
             }
         } else {
             JOptionPane.showMessageDialog(this,
-                    "No hay filas",
-                    "Error",
+                       Constantes.MSG_NO_FILAS,
+                    Constantes.MSG_ERROR,
                     JOptionPane.ERROR_MESSAGE);
         }
 

@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
 import javax.swing.JComboBox;
+import javax.swing.table.DefaultTableModel;
 
 public class MetodosSueltos {
 
@@ -56,6 +57,16 @@ public class MetodosSueltos {
 
     public static boolean validarTelefono(String texto) {
         return texto.matches("[0-9]{9}");
+    }
+
+    public static DefaultTableModel crearTableModelNoEditable() {
+        return new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
     }
 
 }
