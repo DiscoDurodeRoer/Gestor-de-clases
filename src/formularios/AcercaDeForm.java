@@ -7,10 +7,6 @@ package formularios;
 
 import clases.MetodosSueltos;
 
-/**
- *
- * @author Fernando
- */
 public class AcercaDeForm extends javax.swing.JDialog {
 
     /**

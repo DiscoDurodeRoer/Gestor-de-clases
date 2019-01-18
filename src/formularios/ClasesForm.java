@@ -6,6 +6,7 @@
 package formularios;
 
 import clases.Constantes;
+import clases.ConsultasSQL;
 import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
@@ -19,6 +20,7 @@ import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,28 +31,8 @@ public class ClasesForm extends javax.swing.JDialog {
     public ClasesForm(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        this.buttonGroup1.add(this.rdbPresencial);
-        this.buttonGroup1.add(this.rdbDomicilio);
-        this.buttonGroup1.add(this.rdbEspecificar);
-
-        this.buttonGroup2.add(this.rdbPagado);
-        this.buttonGroup2.add(this.rdbNoPagado);
-
-        this.setLocationRelativeTo(null);
-
-        MetodosSueltos.rellenarComboAlumno(cmbAlumno);
-
-        this.dtpFecha.setDate(new Date());
-
+        inicializar();
         this.idClase = -1;
-
-        try {
-            FondoSwing f = new FondoSwing("img/classroom.jpg");
-            f.setBorder(this);
-        } catch (IOException ex) {
-            Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
     }
 
     /**
@@ -59,10 +41,16 @@ public class ClasesForm extends javax.swing.JDialog {
     public ClasesForm(java.awt.Frame parent, boolean modal, int idClase) {
         super(parent, modal);
         initComponents();
+        inicializar();
+        this.idClase = idClase;
+        rellenarDatos();
+    }
+
+    private void inicializar() {
+        // agrupacion de botones 
         this.buttonGroup1.add(this.rdbPresencial);
         this.buttonGroup1.add(this.rdbDomicilio);
         this.buttonGroup1.add(this.rdbEspecificar);
-
         this.buttonGroup2.add(this.rdbPagado);
         this.buttonGroup2.add(this.rdbNoPagado);
 
@@ -71,24 +59,21 @@ public class ClasesForm extends javax.swing.JDialog {
         MetodosSueltos.rellenarComboAlumno(cmbAlumno);
 
         this.dtpFecha.setDate(new Date());
-        this.idClase = idClase;
-        rellenarDatos();
 
         try {
-            FondoSwing f = new FondoSwing("img/classroom.jpg");
+            FondoSwing f = new FondoSwing(Constantes.BG_CLASSROOM);
             f.setBorder(this);
         } catch (IOException ex) {
             Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     private void rellenarDatos() {
 
-        String sql = "select * from clases where id_clase = " + idClase;
+        Object[] valores = {idClase};
 
         try {
-            VariablesGlobales.conexion.ejecutarConsulta(sql);
+            VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.CONSULTAR_CLASE, valores);
             ResultSet rs = VariablesGlobales.conexion.getResultSet();
 
             int idAlumno;
@@ -118,7 +103,10 @@ public class ClasesForm extends javax.swing.JDialog {
             }
 
         } catch (SQLException | ParseException ex) {
-            Logger.getLogger(ClasesForm.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this,
+                    ex.getMessage(),
+                    Constantes.MSG_ERROR,
+                    JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -203,71 +191,74 @@ public class ClasesForm extends javax.swing.JDialog {
 
                 try {
 
-                    String sql = "insert into clases "
-                            + "(fecha, hora_inicio, hora_fin, "
-                            + "id_alumno, precio) values "
-                            + "('" + formatoFechaClase + "', '" + horaInicio + "',"
-                            + "'" + horaFin + "', " + codigoAlumno + ", " + precioFinal + ")";
+                    Object[] valores = {
+                        formatoFechaClase,
+                        horaInicio,
+                        horaFin,
+                        codigoAlumno,
+                        precioFinal
+                    };
 
-                    VariablesGlobales.conexion.ejecutarInstruccion(sql);
+                    VariablesGlobales.conexion.ejecutarInstruccionPreparada(ConsultasSQL.ANIADIR_CLASE, valores);
 
                     int idClase = VariablesGlobales.conexion.ultimoID("id_clase", "clases");
 
                     double pagado = 0;
+                    String sql;
+                    ArrayList valoresPagos = new ArrayList();
                     if (this.rdbPagado.isSelected()) {
                         pagado = precioFinal;
-                        sql = "insert into pagos "
-                                + "(fecha, id_clase, pagado) values "
-                                + "('" + formatoFechaClase + "', " + idClase + ", " + pagado + ")";
+                        valoresPagos.add(formatoFechaClase);
+                        sql = ConsultasSQL.ANIADIR_CLASE_PAGOS_PAGADO;
                     } else {
-
-                        formatoFechaClase = null;
-                        sql = "insert into pagos "
-                                + "(id_clase, pagado) values "
-                                + "(" + idClase + ", " + pagado + ")";
+                        sql = ConsultasSQL.ANIADIR_CLASE_PAGOS_NO_PAGADO;
                     }
 
-                    VariablesGlobales.conexion.ejecutarInstruccion(sql);
+                    valoresPagos.add(idClase);
+                    valoresPagos.add(pagado);
+
+                    VariablesGlobales.conexion.ejecutarInstruccionPreparada(sql, valoresPagos);
 
                     JOptionPane.showMessageDialog(this,
-                            "Se ha insertado correctamente",
-                            "Éxito",
+                            Constantes.MSG_INSERTAR_EXITO,
+                            Constantes.MSG_EXITO,
                             JOptionPane.INFORMATION_MESSAGE);
 
                     return true;
 
                 } catch (SQLException ex) {
                     JOptionPane.showMessageDialog(this,
-                            "No se ha insertado correctamente:" + ex.getMessage(),
-                            "Error",
+                            Constantes.MSG_INSERTAR_EXITO + ex.getMessage(),
+                            Constantes.MSG_ERROR,
                             JOptionPane.ERROR_MESSAGE);
                 }
             } else {
 
                 try {
-                    String sql = "update clases "
-                            + "set fecha= '" + formatoFechaClase + "'"
-                            + ", hora_inicio = '" + horaInicio + "'"
-                            + ", hora_fin = '" + horaFin + "'"
-                            + ", id_alumno = " + codigoAlumno
-                            + ", precio = " + precioFinal + " "
-                            + "where id_clase = " + this.idClase;
-
-                    VariablesGlobales.conexion.ejecutarInstruccion(sql);
+                    
+                    Object[] valores = {
+                        formatoFechaClase,
+                        horaInicio,
+                        horaFin,
+                        codigoAlumno,
+                        precioFinal,
+                        this.idClase
+                    };
+                    
+                    VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.MODIFICAR_CLASE, valores);
 
                     // De momento, no se edita el pago
-                    
                     JOptionPane.showMessageDialog(this,
-                            "Se ha actualizado correctamente",
-                            "Éxito",
+                            Constantes.MSG_MODIFICAR_EXITO,
+                            Constantes.MSG_EXITO,
                             JOptionPane.INFORMATION_MESSAGE);
 
                     return true;
 
                 } catch (SQLException ex) {
                     JOptionPane.showMessageDialog(this,
-                            "No se ha insertado correctamente:" + ex.getMessage(),
-                            "Error",
+                            Constantes.MSG_MODIFICAR_ERROR + ex.getMessage(),
+                            Constantes.MSG_ERROR,
                             JOptionPane.ERROR_MESSAGE);
                 }
 
@@ -276,7 +267,7 @@ public class ClasesForm extends javax.swing.JDialog {
         } else {
             JOptionPane.showMessageDialog(this,
                     errores,
-                    "Error",
+                    Constantes.MSG_ERROR,
                     JOptionPane.ERROR_MESSAGE);
         }
 

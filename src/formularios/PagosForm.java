@@ -48,7 +48,7 @@ public class PagosForm extends javax.swing.JDialog {
         this.setLocationRelativeTo(null);
 
         try {
-            FondoSwing f = new FondoSwing("img/pagos.jpg");
+            FondoSwing f = new FondoSwing(Constantes.BG_PAGOS);
             f.setBorder(this);
         } catch (IOException ex) {
             Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);

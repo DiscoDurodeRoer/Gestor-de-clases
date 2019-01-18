@@ -51,6 +51,11 @@ public class ConsultasSQL {
     public static String ALUMNOS_ORIGEN = "select id, nombre from Origen";
 
     public static String DATOS_ALUMNO_ID = "select * from alumnos where id= ?";
+
+    public static String ALUMNOS_ACTIVOS = "select count(*) as num_alumnos "
+            + "from alumnos "
+            + "where activado = 1";
+
     // CLASES
     public static String ANIADIR_CLASE = "insert into clases "
             + "(fecha, hora_inicio, hora_fin, id_alumno, precio) values "
@@ -64,10 +69,26 @@ public class ConsultasSQL {
             + ", precio = ? "
             + "where id_clase = ? ";
 
-    public static String ANIADIR_CLASE_PAGOS = "insert into clases "
+    public static String ANIADIR_CLASE_PAGOS_NO_PAGADO = "insert into clases "
             + "(id_alumno, precio) values (?, ?)";
+    
+    public static String ANIADIR_CLASE_PAGOS_PAGADO = "insert into clases "
+            + "(fecha, id_alumno, precio) values (?, ?, ?)";
 
     public static String CONSULTAR_CLASE = "select * from clases where id_clase = ?";
+
+    public static String VER_CLASES = "select id_clase, a.nombre || ' ' || apellidos as Alumno, "
+            + " ifnull(strftime('%d/%m/%Y', fecha), 'Pendiente de realizar') as 'Fecha clase', "
+            + "hora_inicio as 'H. inicio', "
+            + "hora_fin as 'H. fin', Precio "
+            + "from clases c, alumnos a, origen o "
+            + "where a.origen = o.id and c.id_alumno = a.id ";
+
+    public static String VER_CLASES_ORDENAR =" order by fecha desc, hora_inicio,hora_fin ";
+    
+    public static String GANADO_CLASES = "select sum(p.pagado) "
+            + " from clases c, pagos p, alumnos a , origen o "
+            + " where a.origen = o.id and c.id_clase = p.id_clase and a.id = c.id_alumno ";
 
     // PAGOS
     public static String PAGOS_ALUMNO = "select p.id_pago,"

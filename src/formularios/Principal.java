@@ -1,11 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package formularios;
 
 import clases.Constantes;
+import clases.ConsultasSQL;
 import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.RendererClases;
@@ -17,6 +13,7 @@ import java.net.ServerSocket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -27,10 +24,12 @@ public class Principal extends javax.swing.JFrame {
 
     private DefaultTableModel modelo;
 
+    private ArrayList datosFiltro;
+
     public Principal() throws IOException {
 
         ServerSocket s = new ServerSocket(6200);
-
+        datosFiltro = new ArrayList();
         try {
             LAF.disenoGUI();
             initComponents();
@@ -43,17 +42,17 @@ public class Principal extends javax.swing.JFrame {
             this.setLocationRelativeTo(null);
             FondoSwing f;
 
-            jMenuItem7.setIcon((new ImageIcon("img/icons/exit.png")));
-            jMenuItem8.setIcon((new ImageIcon("img/icons/see.png")));
-            jMenuItem2.setIcon((new ImageIcon("img/icons/manual_pay.png")));
-            jMenuItem5.setIcon((new ImageIcon("img/icons/new.png")));
-            mitAluCrear.setIcon((new ImageIcon("img/icons/new.png")));
-            jMenuItem9.setIcon((new ImageIcon("img/icons/see.png")));
+            jMenuItem7.setIcon((new ImageIcon(Constantes.ICON_EXIT)));
+            jMenuItem8.setIcon((new ImageIcon(Constantes.ICON_VIEW)));
+            jMenuItem2.setIcon((new ImageIcon(Constantes.ICON_MANUAL_PAY)));
+            jMenuItem5.setIcon((new ImageIcon(Constantes.ICON_NEW)));
+            mitAluCrear.setIcon((new ImageIcon(Constantes.ICON_NEW)));
+            jMenuItem9.setIcon((new ImageIcon(Constantes.ICON_VIEW)));
 
-            f = new FondoSwing("img/textura-principal.jpg");
+            f = new FondoSwing(Constantes.BG_PRINCIPAL);
             f.setBorder(this);
 
-            MiSwing.iconoJFrame(this, "img/icono.png");
+            MiSwing.iconoJFrame(this, Constantes.ICON_APP);
 
             MetodosSueltos.rellenarComboAlumno(cmbAlumno);
             this.cuentaActivos();
@@ -75,10 +74,8 @@ public class Principal extends javax.swing.JFrame {
     private void cuentaActivos() {
 
         try {
-            String sqlActivos = "select count(*) as num_alumnos "
-                    + "from alumnos "
-                    + "where activado = 1";
-            VariablesGlobales.conexion.ejecutarConsulta(sqlActivos);
+
+            VariablesGlobales.conexion.ejecutarConsulta(ConsultasSQL.ALUMNOS_ACTIVOS);
 
             ResultSet rs = VariablesGlobales.conexion.getResultSet();
             rs.next();
@@ -90,41 +87,35 @@ public class Principal extends javax.swing.JFrame {
 
     private void rellenarClases(String sqlAdicional) {
 
-        String sqlBase = "select id_clase, a.nombre || ' ' || apellidos as Alumno, "
-                + " ifnull(strftime('%d/%m/%Y', fecha), 'Pendiente de realizar') as 'Fecha clase', "
-                + "hora_inicio as 'H. inicio', "
-                + "hora_fin as 'H. fin', Precio "
-                + "from clases c, alumnos a, origen o "
-                + "where a.origen = o.id and c.id_alumno = a.id ";
+        String sql = ConsultasSQL.VER_CLASES + sqlAdicional + ConsultasSQL.VER_CLASES_ORDENAR;
 
-        String sql = sqlBase + sqlAdicional + " order by fecha desc, hora_inicio,hora_fin ";
+        String sqlGanado = ConsultasSQL.GANADO_CLASES + sqlAdicional;
 
-        String sqlGanado = "select sum(p.pagado) "
-                + " from clases c, pagos p, alumnos a , origen o "
-                + " where a.origen = o.id and c.id_clase = p.id_clase and a.id = c.id_alumno ";
+        modelo = MetodosSueltos.crearTableModelNoEditable();
 
-        sqlGanado = sqlGanado + sqlAdicional;
-
-        modelo = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
         this.tblClases.setModel(modelo);
 
         this.tblClases.setDefaultRenderer(Object.class, new RendererClases());
 
         try {
-            VariablesGlobales.conexion.ejecutarConsulta(sql);
+
+            System.out.println("SQL: " + sql);
+
+            System.out.println("Datos: ");
+            for (Object o : datosFiltro) {
+                System.out.println(o);
+            }
+
+            VariablesGlobales.conexion.ejecutarConsultaPreparada(sql, datosFiltro);
             VariablesGlobales.conexion.rellenaJTableBD(modelo);
             MiSwing.ocultarColumnaJTable(tblClases, 0);
 
-            VariablesGlobales.conexion.ejecutarConsulta(sqlGanado);
+            VariablesGlobales.conexion.ejecutarConsultaPreparada(sqlGanado, datosFiltro);
             ResultSet rs = VariablesGlobales.conexion.getResultSet();
             rs.next();
             this.txtGanado.setText(rs.getDouble(1) + " €");
 
+            datosFiltro.clear();
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
@@ -146,20 +137,21 @@ public class Principal extends javax.swing.JFrame {
         boolean pendientesAct = false, inicioAct = false;
 
         if (this.cmbAlumno.getSelectedIndex() != 0) {
-            String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
-            int codigoAlumno = Integer.parseInt(filaCombobox[0]);
-            sqlAdicional += " and a.id = " + codigoAlumno;
+            int codigoAlumno = MiSwing.devolverCodigoComboBox(cmbAlumno);
+            sqlAdicional += " and a.id = ? ";
+            datosFiltro.add(codigoAlumno);
 
         } else {
 
             if (!this.rdbOrigenTodos.isSelected()) {
 
+                sqlAdicional += " and o.nombre = ? ";
                 if (this.rdbOnline.isSelected()) {
-                    sqlAdicional += " and o.nombre = 'Online'";
+                    datosFiltro.add("Online");
                 } else if (this.rdbClassgap.isSelected()) {
-                    sqlAdicional += " and o.nombre = 'Classgap'";
+                    datosFiltro.add("Classgap");
                 } else {
-                    sqlAdicional += " and o.nombre = 'Presencial'";
+                    datosFiltro.add("Presencial");
                 }
 
             }
@@ -182,10 +174,12 @@ public class Principal extends javax.swing.JFrame {
             formatoFechaClase = sdf.format(this.dtpFI.getDate());
 
             if (pendientesAct) {
-                sqlAdicional += " or " + parentesisApertura + " c.fecha >=  '" + formatoFechaClase + "'";
+                sqlAdicional += " or " + parentesisApertura + " c.fecha >= ? ";
             } else {
-                sqlAdicional += " and c.fecha >=  '" + formatoFechaClase + "'";
+                sqlAdicional += " and c.fecha >=  ? ";
             }
+
+            datosFiltro.add(formatoFechaClase);
             inicioAct = true;
         }
 
@@ -194,14 +188,16 @@ public class Principal extends javax.swing.JFrame {
 
             if (pendientesAct) {
                 if (inicioAct) {
-                    sqlAdicional += " and c.fecha <='" + formatoFechaClase + "' " + parentesisCierre;
+                    sqlAdicional += " and c.fecha <= ? " + parentesisCierre;
                 } else {
-                    sqlAdicional += " or c.fecha <='" + formatoFechaClase + "' " + parentesisCierre;
+                    sqlAdicional += " or c.fecha <= ? " + parentesisCierre;
                 }
 
             } else {
-                sqlAdicional += " and c.fecha <='" + formatoFechaClase + "'";
+                sqlAdicional += " and c.fecha <= ? ";
             }
+
+            datosFiltro.add(formatoFechaClase);
 
         }
 
@@ -543,10 +539,7 @@ public class Principal extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void btnFiltrareActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFiltrareActionPerformed
-
         filtro();
-
-
     }//GEN-LAST:event_btnFiltrareActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing

@@ -38,7 +38,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
 
         this.dtpFechaPago.setDate(new Date());
         try {
-            FondoSwing f = new FondoSwing("img/pagos_manuales.jpg");
+            FondoSwing f = new FondoSwing(Constantes.BG_PAGOS_MANUALES);
             f.setBorder(this);
         } catch (IOException ex) {
             Logger.getLogger(AlumnoForm.class.getName()).log(Level.SEVERE, null, ex);
