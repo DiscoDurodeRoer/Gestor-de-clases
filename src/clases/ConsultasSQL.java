@@ -69,11 +69,11 @@ public class ConsultasSQL {
             + ", precio = ? "
             + "where id_clase = ? ";
 
-    public static String ANIADIR_CLASE_PAGOS_NO_PAGADO = "insert into clases "
-            + "(id_alumno, precio) values (?, ?)";
-    
-    public static String ANIADIR_CLASE_PAGOS_PAGADO = "insert into clases "
-            + "(fecha, id_alumno, precio) values (?, ?, ?)";
+    public static String ANIADIR_CLASE_PAGOS_NO_PAGADO = "insert into pagos "
+            + "(id_clase, pagado) values (?, ?)";
+
+    public static String ANIADIR_CLASE_PAGOS_PAGADO = "insert into pagos "
+            + "(fecha, id_clase, pagado) values (?, ?, ?)";
 
     public static String CONSULTAR_CLASE = "select * from clases where id_clase = ?";
 
@@ -84,13 +84,26 @@ public class ConsultasSQL {
             + "from clases c, alumnos a, origen o "
             + "where a.origen = o.id and c.id_alumno = a.id ";
 
-    public static String VER_CLASES_ORDENAR =" order by fecha desc, hora_inicio,hora_fin ";
-    
+    public static String VER_CLASES_ORDENAR = " order by fecha desc, hora_fin, hora_inicio ";
+
     public static String GANADO_CLASES = "select sum(p.pagado) "
             + " from clases c, pagos p, alumnos a , origen o "
             + " where a.origen = o.id and c.id_clase = p.id_clase and a.id = c.id_alumno ";
 
+    public static String CLASE_PENDIENTE = "insert into clases "
+            + "(id_alumno, precio) values (?, ?)";
+
     // PAGOS
+    public static String PAGOS_BASE = "select p.id_pago, "
+            + "ifnull(strftime('%d/%m/%Y', p.fecha),'Clase no pagada')  as 'Fecha pago', "
+            + "ifnull(strftime('%d/%m/%Y', c.fecha),'Pendiente de realizar') as 'Fecha clase', "
+            + "a.nombre || ' ' || apellidos as Alumno, "
+            + "c.precio as precio_clase, p.pagado as Pagado "
+            + "from clases c, pagos p, alumnos a, origen o "
+            + "where a.origen = o.id and c.id_clase = p.id_clase and a.id = c.id_alumno ";
+
+    public static String PAGOS_ORDEN = "order by p.fecha, c.fecha desc";
+
     public static String PAGOS_ALUMNO = "select p.id_pago,"
             + "c.precio as precio_clase, p.pagado "
             + "from clases c, pagos p, alumnos a "

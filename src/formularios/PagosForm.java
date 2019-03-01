@@ -6,14 +6,17 @@
 package formularios;
 
 import clases.Constantes;
+import clases.ConsultasSQL;
 import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.RendererPagos;
 import clases.VariablesGlobales;
+import es.discoduroderoer.swing.Limpiar;
 import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
@@ -26,8 +29,11 @@ public class PagosForm extends javax.swing.JDialog {
 
     private DefaultTableModel modelo;
 
+    private ArrayList datosFiltro;
+
     public PagosForm(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
+        datosFiltro = new ArrayList();
         initComponents();
 
         this.dtpFI.setDate(MetodosSueltos.inicioMes());
@@ -57,31 +63,19 @@ public class PagosForm extends javax.swing.JDialog {
     }
 
     private void rellenarPagos(String sqlAdicional) {
-
-        String sqlBase = "select p.id_pago, "
-                + "ifnull(strftime('%d/%m/%Y', p.fecha),'Clase no pagada')  as 'Fecha pago', "
-                + "ifnull(strftime('%d/%m/%Y', c.fecha),'Pendiente de realizar') as 'Fecha clase', "
-                + "a.nombre || ' ' || apellidos as Alumno, "
-                + "c.precio as precio_clase, p.pagado as Pagado "
-                + "from clases c, pagos p, alumnos a, origen o "
-                + "where a.origen = o.id and c.id_clase = p.id_clase and a.id = c.id_alumno ";
-
-        String sql = sqlBase + sqlAdicional + " order by p.fecha, c.fecha desc";
-
-        modelo = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        this.tblPagos.setModel(modelo);
-
-        this.tblPagos.setDefaultRenderer(Object.class, new RendererPagos());
-
         try {
-            VariablesGlobales.conexion.ejecutarConsulta(sql);
+            String sql = ConsultasSQL.PAGOS_BASE + sqlAdicional + ConsultasSQL.PAGOS_ORDEN;
+
+            modelo = MetodosSueltos.crearTableModelNoEditable();
+            this.tblPagos.setModel(modelo);
+
+            this.tblPagos.setDefaultRenderer(Object.class, new RendererPagos());
+
+            VariablesGlobales.conexion.ejecutarConsultaPreparada(sql, datosFiltro);
             VariablesGlobales.conexion.rellenaJTableBD(modelo);
             MiSwing.ocultarColumnaJTable(tblPagos, 0);
+            datosFiltro.clear();
+
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
@@ -103,19 +97,21 @@ public class PagosForm extends javax.swing.JDialog {
         }
 
         if (this.cmbAlumno.getSelectedIndex() != 0) {
-            String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
-            int codigoAlumno = Integer.parseInt(filaCombobox[0]);
-            sqlAdicional += " and a.id = " + codigoAlumno;
-
+            int codigoAlumno = MiSwing.devolverCodigoComboBox(cmbAlumno);
+            sqlAdicional += " and a.id = ? ";
+            datosFiltro.add(codigoAlumno);
         } else {
             if (!this.rdbOrigenTodos.isSelected()) {
 
                 if (this.rdbOnline.isSelected()) {
-                    sqlAdicional += " and o.nombre = 'Online'";
+                    sqlAdicional += " and o.nombre = ? ";
+                    datosFiltro.add("Online");
                 } else if (this.rdbClassgap.isSelected()) {
-                    sqlAdicional += " and o.nombre = 'Classgap'";
+                    sqlAdicional += " and o.nombre = ? ";
+                    datosFiltro.add("Classgap");
                 } else {
-                    sqlAdicional += " and o.nombre = 'Presencial'";
+                    sqlAdicional += " and o.nombre = ? ";
+                    datosFiltro.add("Presencial");
                 }
 
             }
@@ -124,9 +120,9 @@ public class PagosForm extends javax.swing.JDialog {
         if (!this.rdbTodosPagados.isSelected()) {
 
             if (this.rdbPagado.isSelected()) {
-                sqlAdicional += " and precio_clase <= p.pagado";
+                sqlAdicional += " and precio_clase <= p.pagado ";
             } else {
-                sqlAdicional += " and (precio_clase > p.pagado";
+                sqlAdicional += " and (precio_clase > p.pagado ";
                 noPagadoAct = true;
             }
 
@@ -137,12 +133,12 @@ public class PagosForm extends javax.swing.JDialog {
             formatoFechaClase = sdf.format(this.dtpFI.getDate());
 
             if (noPagadoAct) {
-                sqlAdicional += " or " + parentesisApertura + " p.fecha >= '" + formatoFechaClase + "'";
+                sqlAdicional += " or " + parentesisApertura + " p.fecha >= ? ";
             } else {
-                sqlAdicional += " and p.fecha >= '" + formatoFechaClase + "'";
+                sqlAdicional += " and p.fecha >= ? ";
             }
             inicioAct = true;
-
+            datosFiltro.add(formatoFechaClase);
         }
 
         if (this.dtpFF.getDate() != null) {
@@ -150,14 +146,15 @@ public class PagosForm extends javax.swing.JDialog {
 
             if (noPagadoAct) {
                 if (inicioAct) {
-                    sqlAdicional += " and p.fecha <= '" + formatoFechaClase + "'" + parentesisCierre;
+                    sqlAdicional += " and p.fecha <= ?" + parentesisCierre;
                 } else {
-                    sqlAdicional += " or p.fecha <= '" + formatoFechaClase + "'" + parentesisCierre;
+                    sqlAdicional += " or p.fecha <= ?" + parentesisCierre;
                 }
 
             } else {
-                sqlAdicional += " and p.fecha <= '" + formatoFechaClase + "'";
+                sqlAdicional += " and p.fecha <= ? ";
             }
+            datosFiltro.add(formatoFechaClase);
 
         }
 
@@ -300,7 +297,7 @@ public class PagosForm extends javax.swing.JDialog {
 
     private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarActionPerformed
 
-        MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+        Limpiar.limpiarFormulario(this.getContentPane().getComponents());
         this.rdbTodosPagados.setSelected(true);
         rellenarPagos("");
 

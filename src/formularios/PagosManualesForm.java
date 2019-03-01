@@ -6,10 +6,12 @@
 package formularios;
 
 import clases.Constantes;
+import clases.ConsultasSQL;
 import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
+import es.discoduroderoer.swing.Limpiar;
 import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -77,17 +79,12 @@ public class PagosManualesForm extends javax.swing.JDialog {
 
         if (errores.equals("")) {
 
-            String sql = "select p.id_pago,"
-                    + "c.precio as precio_clase, p.pagado "
-                    + "from clases c, pagos p, alumnos a "
-                    + "where c.id_clase = p.id_clase and "
-                    + "a.id = c.id_Alumno "
-                    + "and a.id = " + codigoAlumno
-                    + " and c.precio>p.pagado "
-                    + "order by c.fecha";
-            System.out.println(sql);
+            Object[] valores = {
+                codigoAlumno
+            };
+
             try {
-                VariablesGlobales.conexion.ejecutarConsulta(sql);
+                VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.PAGOS_ALUMNO, valores);
 
                 ResultSet rs = VariablesGlobales.conexion.getResultSet();
 
@@ -109,14 +106,13 @@ public class PagosManualesForm extends javax.swing.JDialog {
                         pagoClase = pago;
                     }
 
-                    sql = "update pagos "
-                            + "set fecha = '" + formatoFechaClase + "', "
-                            + "pagado = " + pagoClase + " "
-                            + "where id_pago=" + idPago;
+                    Object[] valoresUpdate = {
+                        formatoFechaClase,
+                        pagoClase,
+                        idPago
+                    };
 
-                    System.out.println(sql);
-
-                    VariablesGlobales.conexion.ejecutarInstruccion(sql);
+                    VariablesGlobales.conexion.ejecutarInstruccionPreparada(ConsultasSQL.ACTUALIZAR_PAGOS, valoresUpdate);
 
                     pago = pago - diferencia;
                 }
@@ -141,19 +137,22 @@ public class PagosManualesForm extends javax.swing.JDialog {
                             diferencia = pago;
                         }
 
-                        sql = "insert into clases "
-                                + "(id_alumno, precio) values "
-                                + "(" + codigoAlumno + ", " + precioPorClase + ")";
+                        Object[] valoresClasePendiente = {
+                            codigoAlumno,
+                            precioPorClase
+                        };
 
-                        VariablesGlobales.conexion.ejecutarInstruccion(sql);
+                        VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.CLASE_PENDIENTE, valoresClasePendiente);
 
                         int idClase = VariablesGlobales.conexion.ultimoID("id_clase", "clases");
 
-                        sql = "insert into pagos "
-                                + "(fecha, id_clase, pagado) values "
-                                + "('" + formatoFechaClase + "', " + idClase + ", " + diferencia + ")";
+                        Object[] valoresPagos = {
+                            formatoFechaClase,
+                            idClase,
+                            diferencia
+                        };
 
-                        VariablesGlobales.conexion.ejecutarInstruccion(sql);
+                        VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.ANIADIR_PAGOS, valoresPagos);
 
                         pago = pago - diferencia;
 
@@ -315,20 +314,15 @@ public class PagosManualesForm extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
-
         if (this.actualizarPagos()) {
             this.dispose();
         }
-
-
     }//GEN-LAST:event_btnGuardarActionPerformed
 
     private void btnguardarNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnguardarNuevoActionPerformed
         if (this.actualizarPagos()) {
-            MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+            Limpiar.limpiarFormulario(this.getContentPane().getComponents());
         }
-
-
     }//GEN-LAST:event_btnguardarNuevoActionPerformed
 
     private void txtPagoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPagoActionPerformed

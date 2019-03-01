@@ -7,6 +7,7 @@ import clases.MetodosSueltos;
 import clases.RendererClases;
 import clases.VariablesGlobales;
 import es.discoduroderoer.swing.LAF;
+import es.discoduroderoer.swing.Limpiar;
 import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -98,13 +99,6 @@ public class Principal extends javax.swing.JFrame {
         this.tblClases.setDefaultRenderer(Object.class, new RendererClases());
 
         try {
-
-            System.out.println("SQL: " + sql);
-
-            System.out.println("Datos: ");
-            for (Object o : datosFiltro) {
-                System.out.println(o);
-            }
 
             VariablesGlobales.conexion.ejecutarConsultaPreparada(sql, datosFiltro);
             VariablesGlobales.conexion.rellenaJTableBD(modelo);
@@ -555,7 +549,7 @@ public class Principal extends javax.swing.JFrame {
 
     private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarActionPerformed
 
-        MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+        Limpiar.limpiarFormulario(this.getContentPane().getComponents());
 
         this.dtpFI.setDate(MetodosSueltos.inicioMes());
         this.dtpFF.setDate(MetodosSueltos.finMes());

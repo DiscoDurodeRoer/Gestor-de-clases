@@ -16,6 +16,8 @@ import java.util.Date;
 import javax.swing.JOptionPane;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
 import es.discoduroderoer.fechas.Horas;
+import es.discoduroderoer.swing.ErroresFormulario;
+import es.discoduroderoer.swing.Limpiar;
 import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -151,41 +153,38 @@ public class ClasesForm extends javax.swing.JDialog {
     }
 
     private boolean guardar() {
-        String errores = "";
 
-        int codigoAlumno = 0;
+        ErroresFormulario errForm = new ErroresFormulario();
+
+        String errores = "";
         String horaInicio = null, horaFin = null;
         double precioFinal = 0;
-        String formatoFechaClase = null;
 
         precioFinal = Double.parseDouble(this.txtPrecioFinal.getText());
 
-        if (this.cmbAlumno.getSelectedIndex() == 0) {
-            errores += "- Debes seleccionar un alumno \n";
-        } else {
-            String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
-            codigoAlumno = Integer.parseInt(filaCombobox[0]);
-        }
-
-        if (this.dtpFecha.getDate() == null) {
-            errores += "- La fecha no es válida \n";
-        } else {
-            SimpleDateFormat sdf = new SimpleDateFormat(Constantes.FF_YYYY_MM_dd);
-            formatoFechaClase = sdf.format(this.dtpFecha.getDate());
-        }
+        errForm.validarOpcionSeleccionadaCMB(cmbAlumno, "- Debes seleccionar un alumno \n");
+        errForm.validarNulo(this.dtpFecha.getDate(), "- La fecha no es válida \n");
 
         if (this.cmbHoraInicio.getSelectedIndex() > this.cmbHoraFin.getSelectedIndex()) {
             errores += "- Las horas no estan correctas \n";
-        } else {
-            horaInicio = this.cmbHoraInicio.getSelectedItem().toString();
-            horaFin = this.cmbHoraFin.getSelectedItem().toString();
         }
 
         if (precioFinal == 0) {
             errores += "- El precio final no puede ser 0. \n";
         }
 
-        if (errores.isEmpty()) {
+        if (errForm.hasError()) {
+
+            int codigoAlumno = 0;
+
+            String formatoFechaClase = null;
+
+            codigoAlumno = MiSwing.devolverCodigoComboBox(cmbAlumno);
+            horaInicio = this.cmbHoraInicio.getSelectedItem().toString();
+            horaFin = this.cmbHoraFin.getSelectedItem().toString();
+
+            SimpleDateFormat sdf = new SimpleDateFormat(Constantes.FF_YYYY_MM_dd);
+            formatoFechaClase = sdf.format(this.dtpFecha.getDate());
 
             if (idClase == Constantes.ANIADIR) {
 
@@ -235,7 +234,7 @@ public class ClasesForm extends javax.swing.JDialog {
             } else {
 
                 try {
-                    
+
                     Object[] valores = {
                         formatoFechaClase,
                         horaInicio,
@@ -244,7 +243,7 @@ public class ClasesForm extends javax.swing.JDialog {
                         precioFinal,
                         this.idClase
                     };
-                    
+
                     VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.MODIFICAR_CLASE, valores);
 
                     // De momento, no se edita el pago
@@ -533,7 +532,7 @@ public class ClasesForm extends javax.swing.JDialog {
     private void btnGuardarNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarNuevoActionPerformed
 
         if (guardar()) {
-            MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+            Limpiar.limpiarFormulario(this.getContentPane().getComponents());
             this.cmbHoraInicio.setSelectedIndex(13);
             this.cmbHoraInicio.setSelectedIndex(17);
         }

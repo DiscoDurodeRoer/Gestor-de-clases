@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
+import es.discoduroderoer.swing.Limpiar;
 import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -463,7 +464,7 @@ public class AlumnoForm extends javax.swing.JDialog {
 
     private void btnGuadarEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuadarEnviarActionPerformed
         if (insertarUsuario()) {
-            MiSwing.limpiarFormulario(this.getContentPane().getComponents());
+            Limpiar.limpiarFormulario(this.getContentPane().getComponents());
         }
     }//GEN-LAST:event_btnGuadarEnviarActionPerformed
 
