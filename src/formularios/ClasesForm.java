@@ -156,7 +156,6 @@ public class ClasesForm extends javax.swing.JDialog {
 
         ErroresFormulario errForm = new ErroresFormulario();
 
-        String errores = "";
         String horaInicio = null, horaFin = null;
         double precioFinal = 0;
 
@@ -165,15 +164,13 @@ public class ClasesForm extends javax.swing.JDialog {
         errForm.validarOpcionSeleccionadaCMB(cmbAlumno, "- Debes seleccionar un alumno \n");
         errForm.validarNulo(this.dtpFecha.getDate(), "- La fecha no es válida \n");
 
-        if (this.cmbHoraInicio.getSelectedIndex() > this.cmbHoraFin.getSelectedIndex()) {
-            errores += "- Las horas no estan correctas \n";
-        }
+        errForm.validarMayorQue(this.cmbHoraInicio.getSelectedIndex(),
+                this.cmbHoraFin.getSelectedIndex(),
+                "- Las horas no estan correctas \n");
+        
+        errForm.validarDistintoCero(precioFinal, "- El precio final no puede ser 0. \n");
 
-        if (precioFinal == 0) {
-            errores += "- El precio final no puede ser 0. \n";
-        }
-
-        if (errForm.hasError()) {
+        if (!errForm.hasError()) {
 
             int codigoAlumno = 0;
 
@@ -265,7 +262,7 @@ public class ClasesForm extends javax.swing.JDialog {
 
         } else {
             JOptionPane.showMessageDialog(this,
-                    errores,
+                    errForm.getErrores(),
                     Constantes.MSG_ERROR,
                     JOptionPane.ERROR_MESSAGE);
         }

@@ -55,10 +55,6 @@ public class MetodosSueltos {
         return new Date(d.getYear(), d.getMonth(), dias);
     }
 
-    public static boolean validarTelefono(String texto) {
-        return texto.matches("[0-9]{9}");
-    }
-
     public static DefaultTableModel crearTableModelNoEditable() {
         return new DefaultTableModel() {
             @Override

@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
+import es.discoduroderoer.swing.ErroresFormulario;
 import es.discoduroderoer.swing.Limpiar;
 import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
@@ -298,88 +299,33 @@ public class AlumnoForm extends javax.swing.JDialog {
 
     public boolean insertarUsuario() {
 
-        String errores = "";
-        String sql = "";
-        Object[] valores;
-        String nombre = this.txtNombre.getText();
+        ErroresFormulario errForm = new ErroresFormulario();
 
-        if (nombre.equals("")) {
-            errores += "- El nombre es obligatorio\n";
-        }
+        errForm.validarVacio(this.txtNombre.getText(), "- El nombre es obligatorio\n");
+        errForm.validarVacio(this.txtPrecioBase.getText(), "- El precio base es obligatorio\n");
+        errForm.validarVacio(this.txtPrecioDomicilio.getText(), "- El precio a domicilio es obligatorio\n");
+        errForm.validarPatron(this.txtTelefono.getText(), "[0-9]{9}", "- El telefono no es valido\n");
+        errForm.validarEmail(this.txtEmail.getText(), "- El correo no es valido\n");
+        errForm.validarNumeroRealPositivo(this.txtPrecioBase.getText(), 2, "- El precio base no es válido\n");
+        errForm.validarNumeroRealPositivo(this.txtPrecioDomicilio.getText(), 2, "- El precio a domicilio no es válido\n");
+        errForm.validarOpcionSeleccionadaCMB(cmbOrigen, "- Debes seleccionar un origen\n");
 
-        String apellidos = this.txtApellidos.getText();
+        if (!errForm.hasError()) {
 
-        String telefono = this.txtTelefono.getText();
-        if (!telefono.isEmpty() && !MetodosSueltos.validarTelefono(telefono)) {
-            errores += "- El telefono no es valido\n";
-        }
+            Object[] valores;
+            String nombre = this.txtNombre.getText();
+            String apellidos = this.txtApellidos.getText();
+            String telefono = this.txtTelefono.getText();
+            String email = this.txtEmail.getText();
+            double precioBase = Double.parseDouble(this.txtPrecioBase.getText());
+            double precioDomicilio = Double.parseDouble(this.txtPrecioDomicilio.getText());
+            int idOrigen = MiSwing.devolverCodigoComboBox(cmbOrigen);
 
-        String email = this.txtEmail.getText();
-        if (!email.isEmpty() && !ExpresionesRegulares.validar_Mail_Exp(email)) {
-            errores += "- El correo no es valido\n";
-        }
-
-        if (!estaModificando()) {
-            sql = ConsultasSQL.NUM_ALUMNOS_MISMO_TEL;
-            valores = new Object[1];
-            valores[0] = telefono;
-
-        } else {
-            sql = ConsultasSQL.NUM_ALUMNOS_MISMO_TEL_MOD;
-            valores = new Object[2];
-            valores[0] = telefono;
-            valores[1] = telefonoOriginal;
-
-        }
-
-        if (!VariablesGlobales.conexion.consultaVacia(sql)) {
-            errores += "- El telefono esta repetido\n";
-        }
-
-        if (!estaModificando()) {
-            sql = ConsultasSQL.NUM_ALUMNOS_MISMO_EMAIL;
-            valores = new Object[1];
-            valores[0] = email;
-        } else {
-            sql = ConsultasSQL.NUM_ALUMNOS_MISMO_EMAIL_MOD;
-            valores = new Object[2];
-            valores[0] = email;
-            valores[1] = emailOriginal;
-        }
-
-        if (!VariablesGlobales.conexion.consultaVacia(sql)) {
-            errores += "- El email esta repetido\n";
-        }
-
-        double precioBase = 0;
-        if (!ExpresionesRegulares.validaNumeroRealPositivo_Exp(this.txtPrecioBase.getText(), 2)) {
-            errores += "- El precio base no es válido\n";
-        } else {
-            precioBase = Double.parseDouble(this.txtPrecioBase.getText());
-        }
-
-        double precioDomicilio = 0;
-
-        if (!ExpresionesRegulares.validaNumeroRealPositivo_Exp(this.txtPrecioDomicilio.getText(), 2)) {
-            errores += "- El precio base no es válido\n";
-        } else {
-            precioDomicilio = Double.parseDouble(this.txtPrecioDomicilio.getText());
-        }
-
-        String[] origen = (String[]) (this.cmbOrigen.getSelectedItem());
-        int idOrigen = Integer.parseInt(origen[0]);
-
-        if (idOrigen == Constantes.CMB_NO_SELECCIONADO) {
-            errores += "- Debes seleccionar un origen\n";
-        }
-
-        int activo = 0;
-
-        if (rdbActSi.isSelected()) {
-            activo = 1;
-        }
-
-        if (errores.equals("")) {
+            String sql;
+            int activo = 0;
+            if (rdbActSi.isSelected()) {
+                activo = 1;
+            }
 
             if (estaModificando()) {
                 sql = ConsultasSQL.MODIFICAR_ALUMNO;
@@ -435,24 +381,14 @@ public class AlumnoForm extends javax.swing.JDialog {
 
         } else {
 
-            JOptionPane.showMessageDialog(this, errores,
+            JOptionPane.showMessageDialog(this, 
+                    errForm.getErrores(),
                     Constantes.MSG_ERROR,
                     JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
     }
-
-    public void limpiar() {
-        this.txtNombre.setText("");
-        this.txtEmail.setText("");
-        this.txtTelefono.setText("");
-        this.txtPrecioBase.setText("");
-        this.txtPrecioDomicilio.setText("");
-        this.rdbActSi.setSelected(false);
-        this.cmbOrigen.setSelectedIndex(0);
-    }
-
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
 

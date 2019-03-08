@@ -11,6 +11,7 @@ import clases.FondoSwing;
 import clases.MetodosSueltos;
 import clases.VariablesGlobales;
 import es.discoduroderoer.expresiones_regulares.ExpresionesRegulares;
+import es.discoduroderoer.swing.ErroresFormulario;
 import es.discoduroderoer.swing.Limpiar;
 import es.discoduroderoer.swing.MiSwing;
 import java.io.IOException;
@@ -50,34 +51,20 @@ public class PagosManualesForm extends javax.swing.JDialog {
 
     public boolean actualizarPagos() {
 
-        String errores = "";
+        ErroresFormulario errForm = new ErroresFormulario();
 
-        String precioText = this.txtPago.getText();
-        double pago = 0;
-        int codigoAlumno = -1;
-        String formatoFechaClase = null;
+        errForm.validarOpcionSeleccionadaCMB(cmbAlumno, "- Debes elegir el alumno \n");
+        errForm.validarVacio(this.txtPago.getText(), "- El pago no puede estar vacio\n");
+        errForm.validarNumeroRealPositivo(this.txtPago.getText(), 2, "- El formato del precio es incorrecto (numero real con 2 decimales) \n");
+        errForm.validarNulo(this.dtpFechaPago.getDate(), "- La fecha no es válida \n");
 
-        if (this.cmbAlumno.getSelectedIndex() == 0) {
-            errores = "- Debes elegir el alumno \n";
-        } else {
-            String[] filaCombobox = (String[]) (this.cmbAlumno.getSelectedItem());
-            codigoAlumno = Integer.parseInt(filaCombobox[0]);
-        }
+        if (!errForm.hasError()) {
 
-        if (!ExpresionesRegulares.validaNumeroRealPositivo_Exp(precioText, 2)) {
-            errores = "- El formato del precio es incorrecto \n";
-        } else {
-            pago = Double.parseDouble(precioText);
-        }
-
-        if (this.dtpFechaPago.getDate() == null) {
-            errores += "- La fecha no es válida \n";
-        } else {
             SimpleDateFormat sdf = new SimpleDateFormat(Constantes.FF_YYYY_MM_dd);
-            formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
-        }
+            String formatoFechaClase = sdf.format(this.dtpFechaPago.getDate());
 
-        if (errores.equals("")) {
+            int codigoAlumno = MiSwing.devolverCodigoComboBox(cmbAlumno);
+            double pago = Double.parseDouble(this.txtPago.getText());
 
             Object[] valores = {
                 codigoAlumno
@@ -142,7 +129,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
                             precioPorClase
                         };
 
-                        VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.CLASE_PENDIENTE, valoresClasePendiente);
+                        VariablesGlobales.conexion.ejecutarInstruccionPreparada(ConsultasSQL.CLASE_PENDIENTE, valoresClasePendiente);
 
                         int idClase = VariablesGlobales.conexion.ultimoID("id_clase", "clases");
 
@@ -152,7 +139,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
                             diferencia
                         };
 
-                        VariablesGlobales.conexion.ejecutarConsultaPreparada(ConsultasSQL.ANIADIR_PAGOS, valoresPagos);
+                        VariablesGlobales.conexion.ejecutarInstruccionPreparada(ConsultasSQL.ANIADIR_PAGOS, valoresPagos);
 
                         pago = pago - diferencia;
 
@@ -171,7 +158,7 @@ public class PagosManualesForm extends javax.swing.JDialog {
             }
         } else {
             JOptionPane.showMessageDialog(this,
-                    errores,
+                    errForm.getErrores(),
                     Constantes.MSG_ERROR,
                     JOptionPane.ERROR_MESSAGE);
             return false;

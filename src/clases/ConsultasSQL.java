@@ -30,24 +30,6 @@ public class ConsultasSQL {
             + "set activado = ? "
             + "where id = ?";
 
-    public static String NUM_ALUMNOS_MISMO_TEL = "select count(*) "
-            + "from alumnos "
-            + "where telefono = ?";
-
-    public static String NUM_ALUMNOS_MISMO_TEL_MOD = "select count(*) "
-            + "from alumnos "
-            + "where telefono = ? and "
-            + "telefono<> ?";
-
-    public static String NUM_ALUMNOS_MISMO_EMAIL = "select count(*) "
-            + "from alumnos "
-            + "where email=?";
-
-    public static String NUM_ALUMNOS_MISMO_EMAIL_MOD = "select count(*) "
-            + "from alumnos "
-            + "where email=? and "
-            + "email<>?";
-
     public static String ALUMNOS_ORIGEN = "select id, nombre from Origen";
 
     public static String DATOS_ALUMNO_ID = "select * from alumnos where id= ?";
